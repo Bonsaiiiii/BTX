@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="/bootstrap.min.css">
+  <script src="/jquery.min.js"></script>
+  <script src="/bootstrap.min.js"></script>
+</head>
+<body style="width: 650px" class="mx-auto">
+<div  >
+<div class="my-4">
+  <h1 class="text-center">
+    Painel de configurações
+  </h1>
+</div>
+<div class="text-center">
+  <div class="btn-group mx-1" style="width: 380px">
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modaltx">Configurar canais transmissão</button>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalrx">Configurar canais recepção</button>
+  </div>
+</div>
+<div class="text-center">
+  <div class="btn-group mx-1" style="width: 380px">
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modaladv">Configurações avançadas</button>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalinfo">informações</button>
+  </div>
+</div>
+
+<div class="modal" id="modaltx" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Canais de Transmissão</h5>
+        <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form class="form-group" id="txchanels" method="GET" action="/txchanels">
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 0</span>
+              <input type="text" id="ch_0_tx" name="ch_0_tx" class="form-control" maxlength="9" required 
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 1</span>
+              <input type="text" id="ch_1_tx" name="ch_1_tx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 2</span>
+              <input type="text" id="ch_2_tx" name="ch_2_tx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 3</span>
+              <input type="text" id="ch_3_tx" name="ch_3_tx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 4</span>
+              <input type="text" id="ch_4_tx" name="ch_4_tx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 5</span>
+              <input type="text" id="ch_5_tx" name="ch_5_tx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 6</span>
+              <input type="text" id="ch_6_tx" name="ch_6_tx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 7</span>
+              <input type="text" id="ch_7_tx" name="ch_7_tx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 8</span>
+              <input type="text" id="ch_8_tx" name="ch_8_tx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 9</span>
+              <input type="text" id="ch_9_tx" name="ch_9_tx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="submit" form="txchanels" class="btn btn-primary">Save changes</button>
+              </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modalrx">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+       <h5 class="modal-title">Canais de Recepção</h5>
+        <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form class="form-group" id="rxchanels" method="GET" action="/rxchanels">
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 0</span>
+              <input type="text" id="ch_0_rx" name="ch_0_rx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 1</span>
+              <input type="text" id="ch_1_rx" name="ch_1_rx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 2</span>
+              <input type="text" id="ch_2_rx" name="ch_2_rx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 3</span>
+              <input type="text" id="ch_3_rx" name="ch_3_rx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 4</span>
+              <input type="text" id="ch_4_rx" name="ch_4_rx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 5</span>
+              <input type="text" id="ch_5_rx" name="ch_5_rx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 6</span>
+              <input type="text" id="ch_6_rx" name="ch_6_rx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 7</span>
+              <input type="text" id="ch_7_rx" name="ch_7_rx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 8</span>
+              <input type="text" id="ch_8_rx" name="ch_8_rx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Canal 9</span>
+              <input type="text" id="ch_9_rx" name="ch_9_rx" class="form-control" maxlength="9" required
+              pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+              placeholder="410.00000 - 469.00000">
+              <span class="input-group-text">Mhz</span>
+            </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="submit" form="rxchanels" class="btn btn-primary">Save changes</button>
+              </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal" id="modaladv">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Configurações Avançadas</h5>
+        <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form class="form-group" id="advform" method="GET" action="/adv">
+          <label for="modo_id" class="form-label">Modo de operação</label>
+          <select class="form-select" id="modo_id" name="modo">
+          <option value="TXONLY">TXONLY</option>
+          <option value="RXONLY">RXONLY</option>
+          <option value="DUPLEX">DUPLEX</option>
+          </select>
+          <label for="flow_id" class="form-label mt-4">Limite inferior da faixa de frequencia do radio</label>
+          <label for="flow_id" class="mb-2">(410-470Mhz e menor que FUPP)</label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">FLOW</span>
+            <input type="text" id="flow_id" name="flow" class="form-control" maxlength="3" required
+            pattern="[4]{1}[1-6]{1}[0-9]{1}">
+            <span class="input-group-text">Mhz</span>
+          </div>
+          <label for="fupp_id" class="form-label mt-1">Limite superior da faixa de frequencia do radio</label>
+          <label for="fupp_id" class="mb-2">(410-470Mhz e maior que FLOW)</label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">FUPP</span>
+            <input type="text" id="fupp_id" name="fupp" class="form-control" maxlength="3" required
+            pattern="[4]{1}[1-7]{1}[0-9]{1}">
+            <span class="input-group-text">Mhz</span>
+          </div>
+          <label for="read_id" class="form-label">ler dados do radio novamente</label>
+          <select class="form-select" id="read_id" name="read">
+          <option value="SIM">SIM</option>
+          <option value="NAO">NÂO</option>
+          </select>
+        </form>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="submit" form="advform" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal" id="modalinfo">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Informações</h5>
+        <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="text-left">Marca: Hugen Plus</p>
+        <p class="text-left">Modelo: %model%</p>
+        <p class="text-left">Codigo Serial: %codser%</p>  
+        <p class="text-left">versão de firmware radio: %firver%</p>
+        <p class="text-left">Versão de firmware controle: %controlver%</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<form class="form-group mx-1 form-control-lg" id="radioform" method="GET" action="/radio">
+  <h2 class="my-5 text-center">Entrada de dados</h2>
+  <select class="form-select" id="input_id" name="input">
+    <option value="CLIENT">Entrada via Ntrip (Ntrip Cliente)</option>
+    <option value="SERIAL">Entrada externa via porta serial (conector MIKE superior)</option>
+  </select>
+  <h2 class=" mt-5 text-center">Configurações do Radio</h2>
+  <label for="tx_id" class="form-label mt-4 mx-1">Canais de transmissão (0-9)</label>
+  <select class="form-select" id="tx_id" name="tx">
+    <option value="0" id="ltx0"></option>
+    <option value="1" id="ltx1"></option>
+    <option value="2" id="ltx2"></option>
+    <option value="3" id="ltx3"></option>
+    <option value="4" id="ltx4"></option>
+    <option value="5" id="ltx5"></option>
+    <option value="6" id="ltx6"></option>
+    <option value="7" id="ltx7"></option>
+    <option value="8" id="ltx8"></option>
+    <option value="9" id="ltx9"></option>
+  </select>
+  <label for="rx_id" class="form-label mt-4 mx-1">Canais de recepção (0-9)</label>
+  <select class="form-select" id="rx_id" name="rx">
+    <option value="0" id="lrx0"></option>
+    <option value="1" id="lrx1"></option>
+    <option value="2" id="lrx2"></option>
+    <option value="3" id="lrx3"></option>
+    <option value="4" id="lrx4"></option>
+    <option value="5" id="lrx5"></option>
+    <option value="6" id="lrx6"></option>
+    <option value="7" id="lrx7"></option>
+    <option value="8" id="lrx8"></option>
+    <option value="9" id="lrx9"></option>
+  </select>
+  <label for="sbaud_id" class="form-label mt-4 mx-1">Porta Serial (entrada de dados externa)</label>
+  <select class="form-select" id="sbaud_id" name="sbaud">
+    <option value="9600">9600</option>
+    <option value="19200">19200</option>
+    <option value="38400">38400</option>
+    <option value="115200">115200</option>
+  </select>
+  <label for="pwr_id" class="form-label mt-4 mx-1">Potencia de transmissão</label>
+  <select class="form-select" id="pwr_id" name="pwr">
+    <option value="L">Baixo (0.5W)</option>
+    <option value="M">Médio (1W)</option>
+    <option value="H">Alto (2W)</option>
+  </select>
+  <label for="prt_id" class="form-label mt-4 mx-1">Protocolo de comunicação</label>
+  <select class="form-select" id="prt_id" name="prt">
+    <option value="TRIMTALK1">Trimtalk 450s (4800bps)</option>
+    <option value="TRIMTALK2">Trimtalk 450s (9600bps)</option>
+    <option value="TRIMMK31">TRIMMK3 (4800bps)</option>
+    <option value="TRIMMK32">TRIMMK3 (19200bps)</option>
+    <option value="TRANSEOT1">Transparent EOT (4800bps)</option>
+    <option value="TRANSEOT2">Transparent EOT (9600bps)</option>
+    <option value="SATEL1">Satel (4800bps)</option>
+    <option value="SATEL2">Satel (9600bps)</option>
+    <option value="SATEL3">Satel (19200bps)</option>
+    <option value="SOUTH1">South (4800bps)</option>
+    <option value="SOUTH2">South (9600bps)</option>
+    <option value="SOUTH3">South (19200bps)</option>
+  </select>
+  <div class="mt-4 text-center">
+    <button type="submit" class="btn btn-lg btn-primary">Programar configurações do radio</button>
+  </div>
+</form>
+  
+  
+<div class="mt-5 mb-4">
+  <h2 class="text-center">
+    Configurações NTRIP
+  </h2>
+</div>
+<div>
+  <form class="form-group mx-1 form-control-lg" id="ntripform" name="ntripform" method="GET" action="/ntrip">
+    <label for="wifi_id" class="form-label mx-2">Credenciais da rede WIFI</label>
+    <div class="input-group mb-3">
+      <span class="input-group-text">Rede WIFI</span>
+      <input type="text" class="form-control" maxlength="22" id="wifi_id" name="wifi" value="" required>
+    </div>
+    <div class="input-group mb-3">
+      <span class="input-group-text">Senha WIFI</span>
+      <input type="text" class="form-control" maxlength="23" id="wifipass_id" name="wifipass" value="" required> 
+    </div>
+    <label for="ip_id" class="form-label mx-2">Numero de IP do host NTRIP (x.x.x.x)</label>
+    <div class="input-group mb-3">
+      <span class="input-group-text">HOST IP</span>
+      <input type="text" class="form-control" maxlength="15"
+      placeholder="192.168.4.1"
+      pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" id="ip_id"name="IP" value="" required>
+    </div>
+    <label for="port_id" class="form-label mx-2">Numero da porta do host NTRIP (1 - 65535)</label>
+    <div class="input-group mb-3">
+      <span class="input-group-text">PORTA</span>
+      <input type="text" class="form-control" maxlength="5" id="port_id" name="port" value="" required>
+    </div>
+    <label for="mountpt_id" class="form-label mx-2">Nome do Mount point do host NTRIP (maximo de 80 caracteres)</label>
+    <div class="input-group mb-3">
+      <span class="input-group-text">Mount point</span>
+      <input type="text" class="form-control"  maxlength="20" id="mountpt_id" name="mountpt" value="" required>
+    </div>
+    <label for="user_id" class="form-label mx-2">Nome de usuario do host NTRIP (maximo de 30 caracteres)</label>
+    <div class="input-group mb-3">
+      <span class="input-group-text">Usuario</span>
+      <input type="text" class="form-control" maxlength="20" id="user_id" name="user" value="" required>
+    </div>
+    <label for="userpass_id" class="form-label mx-2">Senha de usuario do host NTRIP (maximo de 30 caracteres)</label>
+     <div class="input-group mb-3">
+      <span class="input-group-text">Senha</span>
+      <input type="text" class="form-control" maxlength="20" id="userpass_id" name="userpass" value="" required>
+    </div>
+    <div class="my-4 text-center">
+      <button type="submit" class="btn btn-lg btn-primary">Programar configurações do NTRIP</button>
+    </div> 
+  </form>
+</div>  
+<form method="GET" action="/closeconf">
+<div class="my-4 text-center">
+  <button type="submit" class="btn btn-lg btn-primary ">Sair modo de configuração</button>
+</div>
+</form>
+</div>
+
+
+<script>
+  const xmlhttp_radio = new XMLHttpRequest();
+  xmlhttp_radio.onload = function() {
+    const myObj_radio = JSON.parse(this.responseText);
+    document.getElementById("tx_id").value = myObj_radio.TX;
+    document.getElementById("rx_id").value = myObj_radio.RX;
+    document.getElementById("sbaud_id").value = myObj_radio.SBAUD;
+    document.getElementById("pwr_id").value = myObj_radio.PWR;
+    document.getElementById("prt_id").value = myObj_radio.PRT;
+
+    document.getElementById("ltx0").text = "chanel 0 - frequencia = " + myObj_radio.TX0;   
+    document.getElementById("ltx1").text = "chanel 1 - frequencia = " + myObj_radio.TX1;
+    document.getElementById("ltx2").text = "chanel 2 - frequencia = " + myObj_radio.TX2;
+    document.getElementById("ltx3").text = "chanel 3 - frequencia = " + myObj_radio.TX3;
+    document.getElementById("ltx4").text = "chanel 4 - frequencia = " + myObj_radio.TX4;
+    document.getElementById("ltx5").text = "chanel 5 - frequencia = " + myObj_radio.TX5;
+    document.getElementById("ltx6").text = "chanel 6 - frequencia = " + myObj_radio.TX6;
+    document.getElementById("ltx7").text = "chanel 7 - frequencia = " + myObj_radio.TX7;
+    document.getElementById("ltx8").text = "chanel 8 - frequencia = " + myObj_radio.TX8;
+    document.getElementById("ltx9").text = "chanel 9 - frequencia = " + myObj_radio.TX9;
+
+    document.getElementById("lrx0").text = "chanel 0 - frequencia = " + myObj_radio.RX0;   
+    document.getElementById("lrx1").text = "chanel 1 - frequencia = " + myObj_radio.RX1;
+    document.getElementById("lrx2").text = "chanel 2 - frequencia = " + myObj_radio.RX2;
+    document.getElementById("lrx3").text = "chanel 3 - frequencia = " + myObj_radio.RX3;
+    document.getElementById("lrx4").text = "chanel 4 - frequencia = " + myObj_radio.RX4;
+    document.getElementById("lrx5").text = "chanel 5 - frequencia = " + myObj_radio.RX5;
+    document.getElementById("lrx6").text = "chanel 6 - frequencia = " + myObj_radio.RX6;
+    document.getElementById("lrx7").text = "chanel 7 - frequencia = " + myObj_radio.RX7;
+    document.getElementById("lrx8").text = "chanel 8 - frequencia = " + myObj_radio.RX8;
+    document.getElementById("lrx9").text = "chanel 9 - frequencia = " + myObj_radio.RX9;
+
+    document.getElementById("ch_0_tx").value = myObj_radio.TX0;   
+    document.getElementById("ch_1_tx").value = myObj_radio.TX1; 
+    document.getElementById("ch_2_tx").value = myObj_radio.TX2; 
+    document.getElementById("ch_3_tx").value = myObj_radio.TX3; 
+    document.getElementById("ch_4_tx").value = myObj_radio.TX4; 
+    document.getElementById("ch_5_tx").value = myObj_radio.TX5; 
+    document.getElementById("ch_6_tx").value = myObj_radio.TX6; 
+    document.getElementById("ch_7_tx").value = myObj_radio.TX7; 
+    document.getElementById("ch_8_tx").value = myObj_radio.TX8;  
+    document.getElementById("ch_9_tx").value = myObj_radio.TX9;
+
+    document.getElementById("ch_0_rx").value = myObj_radio.RX0;   
+    document.getElementById("ch_1_rx").value = myObj_radio.RX1; 
+    document.getElementById("ch_2_rx").value = myObj_radio.RX2; 
+    document.getElementById("ch_3_rx").value = myObj_radio.RX3; 
+    document.getElementById("ch_4_rx").value = myObj_radio.RX4; 
+    document.getElementById("ch_5_rx").value = myObj_radio.RX5; 
+    document.getElementById("ch_6_rx").value = myObj_radio.RX6; 
+    document.getElementById("ch_7_rx").value = myObj_radio.RX7; 
+    document.getElementById("ch_8_rx").value = myObj_radio.RX8;  
+    document.getElementById("ch_9_rx").value = myObj_radio.RX9; 
+
+    document.getElementById("modo_id").value = myObj_radio.MODE;
+    document.getElementById("flow_id").value = myObj_radio.FLOW;
+    document.getElementById("fupp_id").value = myObj_radio.FUPP;
+  };
+  xmlhttp_radio.open("GET", "radio_conf.json");
+  xmlhttp_radio.send();
+
+  const xmlhttp_ntrip = new XMLHttpRequest();
+  xmlhttp_ntrip.onload = function() {
+    const myObj_ntrip = JSON.parse(this.responseText);
+    document.getElementById("wifi_id").value = myObj_ntrip.WIFI;
+    document.getElementById("wifipass_id").value = myObj_ntrip.WPAS;
+    document.getElementById("ip_id").value = myObj_ntrip.HOST;
+    document.getElementById("port_id").value = myObj_ntrip.PORT;
+    document.getElementById("mountpt_id").value = myObj_ntrip.MNTP;
+    document.getElementById("user_id").value = myObj_ntrip.USER;
+    document.getElementById("userpass_id").value = myObj_ntrip.UPAS;
+  };
+  xmlhttp_ntrip.open("GET", "ntrip_conf.json");
+  xmlhttp_ntrip.send();
+
+  const xmlhttp_board = new XMLHttpRequest();
+  xmlhttp_board.onload = function() {
+    const myObj_board = JSON.parse(this.responseText);
+    document.getElementById("input_id").value = myObj_board.INPT;
+    document.getElementById("read_id").value = myObj_board.READ;
+  };
+  xmlhttp_board.open("GET", "board_conf.json");
+  xmlhttp_board.send();
+</script> 
+</body>
+</html>

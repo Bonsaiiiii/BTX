@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://bootswatch.com/_vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    
+  </head>
+  <body>
+    <div class="bg-light">
+      <nav class="navbar navbar-expand-lg bg-primary" data-bs-theme="dark">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#">Logo</a>
+          <a class="navbar-brand" href="#">%nome_btx%</a>
+        </div>
+      </nav>
+      <ul class="nav nav-tabs justify-content-center" role="tablist">
+        <li class="nav-item" role="presentation">
+          <a class="nav-link active" data-bs-toggle="tab" href="#home" aria-selected="true" role="tab">Pagina inicial</a>
+        </li>
+        <li class="nav-item" role="presentation">
+          <a class="nav-link" data-bs-toggle="tab" href="#channel" aria-selected="false" role="tab" tabindex="-1">Configurar canais</a>
+        </li>
+        <li class="nav-item" role="presentation">
+          <a class="nav-link" data-bs-toggle="tab" href="#adv_conf" aria-selected="true" tabindex="-1" role="tab">configurações avançadas</a>
+        </li>
+      </ul>
+      <div id="myTabContent" class="tab-content">
+        <div class="tab-pane fade active show" id="home" role="tabpanel">
+          <div class="container p-4 my-4 border bg-secondary">
+            <h1 class="text-center">Status de Alimentação</h1>
+            <p>
+              <span id="PDsim" class="badge bg-success">SIM</span>
+              <span id="PDnao" class="badge bg-danger">NÃO</span> 
+              Fonte de alimentação é USB Power Delivery? 
+            </p>
+            <p>
+              <span id="PD12sim" class="badge bg-success">SIM</span>
+              <span id="PD12nao" class="badge bg-danger">NÃO</span> 
+              Suporta Tensão de 12V?
+            </p>
+            <p>
+              <span id="5sim" class="badge bg-success">SIM</span>
+              <span id="5nao" class="badge bg-danger">NÃO</span> 
+              Fonte de Alimentação somente suporta 5V?
+            </p>
+            <p>
+              <span id="EXTsim" class="badge bg-success">SIM</span>
+              <span id="EXTnao" class="badge bg-danger">NÃO</span> 
+              Dispositivo Conectado a porta superior(conector MIKE)?
+            </p>
+            <form class="form-group" id="PWREXT">
+              <label class="h4">
+                Ligar saida de alimentação externa?¹
+              </label>
+              <select class="form-select" id="EXTpower">
+                <option value="1">SIM</option>
+                <option value="0">NÃO</option>
+              </select>
+              <p>
+                1 Somente se a fonte de alimentação ligada ao BTX suportar o protocolo USB Power Delivery e suportar a tensão de 12V.
+              </p>
+              <div class="mt-4 text-center">
+                <button onclick="SavePWR()" class="btn btn-lg btn-primary">Salvar</button>
+              </div>
+            </form>
+          </div>
+          <div class="container p-4 border bg-secondary">
+            <h1 class="text-center">Modos de Operação</h1>
+            <div class="accordion accordion-flush" id="MODOS">
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="header1">
+                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#MODO1" aria-expanded="true" aria-controls="MODO1">
+                    Modo Serial
+                    <span id="EmUsoSerial" class="badge bg-success mx-auto">Modo em Uso</span>
+                  </button>
+                </h2>
+                <div id="MODO1" class="accordion-collapse collapse" aria-labelledby="header1" data-bs-parent="#MODOS">
+                  <div class="accordion-body">
+                    <p>  
+                      Neste modo a porta superior será ativada podendo receber e transmitir correções RTK via serial e as receber ou transmitir via UHF.
+                    </p>
+                    <form class="form-group form-control-lg" id="radioform" method="GET" action="/radio">
+                      <label for="tx_id" class="form-label mt-4 mx-1">Canais de transmissão (0-9)</label>
+                      <select class="form-select" id="tx_id" name="tx">
+                        <option value="0" id="ltx0"></option>
+                        <option value="1" id="ltx1"></option>
+                        <option value="2" id="ltx2"></option>
+                        <option value="3" id="ltx3"></option>
+                        <option value="4" id="ltx4"></option>
+                        <option value="5" id="ltx5"></option>
+                        <option value="6" id="ltx6"></option>
+                        <option value="7" id="ltx7"></option>
+                        <option value="8" id="ltx8"></option>
+                        <option value="9" id="ltx9"></option>
+                      </select>
+                      <label for="rx_id" class="form-label mt-4 mx-1">Canais de recepção (0-9)</label>
+                      <select class="form-select" id="rx_id" name="rx">
+                        <option value="0" id="lrx0"></option>
+                        <option value="1" id="lrx1"></option>
+                        <option value="2" id="lrx2"></option>
+                        <option value="3" id="lrx3"></option>
+                        <option value="4" id="lrx4"></option>
+                        <option value="5" id="lrx5"></option>
+                        <option value="6" id="lrx6"></option>
+                        <option value="7" id="lrx7"></option>
+                        <option value="8" id="lrx8"></option>
+                        <option value="9" id="lrx9"></option>
+                      </select>
+                      <label for="sbaud_id" class="form-label mt-4 mx-1">Porta Serial (entrada de dados externa)</label>
+                      <select class="form-select" id="sbaud_id" name="sbaud">
+                        <option value="9600">9600</option>
+                        <option value="19200">19200</option>
+                        <option value="38400">38400</option>
+                        <option value="115200">115200</option>
+                      </select>
+                      <label for="pwr_id" class="form-label mt-4 mx-1">Potencia de transmissão</label>
+                      <select class="form-select" id="pwr_id" name="pwr">
+                        <option value="L">Baixo (0.5W)</option>
+                        <option value="M">Médio (1W)</option>
+                        <option value="H">Alto (2W)</option>
+                      </select>
+                      <label for="prt_id" class="form-label mt-4 mx-1">Protocolo de comunicação</label>
+                      <select class="form-select" id="prt_id" name="prt">
+                        <option value="TRIMTALK2">Trimtalk 450s (9600bps)</option>
+                        <option value="TRIMMK32">TRIMMK3 (19200bps)</option>
+                        <option value="TRANSEOT2">Transparent EOT (9600bps)</option>
+                        <option value="SATEL2">Satel (9600bps)</option>
+                        <option value="SATEL3">Satel (19200bps)</option>
+                        <option value="SOUTH2">South (9600bps)</option>
+                        <option value="SOUTH3">South (19200bps)</option>
+                      </select>
+                      <div class="mt-4 text-center">
+                        <button type="submit" class="btn btn-lg btn-primary">Salvar configurações</button>
+                      </div>
+                    </form>
+                    <div class="mt-4 text-center">
+                      <button type="submit" class="btn btn-lg btn-primary ">Sair modo de configuração</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="header2">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#MODO2" aria-expanded="false" aria-controls="MODO2">
+                    Modo NTRIP Client
+                    <span id="EmUsoClient" class="badge bg-success mx-auto">Modo em Uso</span>
+                  </button>
+                </h2>
+                <div id="MODO2" class="accordion-collapse collapse" aria-labelledby="header2" data-bs-parent="#MODOS">
+                  <div class="accordion-body">
+                    <p>
+                      Neste modo o BTX>02 recebe correções RTK via Ntrip e transmite via UHF.
+                    </p>
+                    <div class="container p-1 border bg-light">
+                      <h4 class="text-center">Configurar rede WiFi </h4>
+                      <div class="table-responsive">
+                        <table class="table table-borderless">
+                          <thead>
+                            <tr class="table-light">
+                              <th>Status:</th>
+                              <th id="WifiStatus"></th>
+                              <th>
+                                <button type="button" class="btn btn-sm">
+                                  <strong>Atualizar</strong> 
+                                </button>
+                              </th>
+                            </tr>
+                          </thead>
+                        </table>
+                        <table class="table table-bordered">
+                          <tread>
+                            <tr>
+                              <th>#</th>
+                              <th>SSID</th>
+                              <th>RSSI</th>
+                              <th>Conectar</th>
+                            </tr>
+                          </tread>
+                          <tbody id="ListaWifi">
+                            <tr>
+                              <th>#</th>
+                              <th>SSID</th>
+                              <th>RSSI</th>
+                              <th>
+                                <button id="Exemplo" type="button" class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#ModalWifi" data-bs-ssid="SSID" data-bs-bssid="BSSID" data-bs-canal="CANAL" data-bs-encriptacao="ENCRIPTAÇÃO" data-bs-oculto="SSID_OCULTO" data-bs-pass="SENHA">
+                                  <strong>Conectar</strong>  
+                                </button>
+                              </th>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="modal fade" role="dialog" tabindex="-1" id="modal-info">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h4 class="modal-title">Conectar na rede</h4>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                              <form>
+                                <div class="input-group-prepend">
+                                  <span class="input-group-text" id="basic-addon1"><i class="fas fa-lock"></i></span>
+                                </div>
+                                <input name="password" type="password" value="" class="input form-control" id="password" placeholder="password" required="true" aria-label="password" aria-describedby="basic-addon1" />
+                                <div class="input-group-append">
+                                  <span class="input-group-text" onclick="password_show_hide();">
+                                    <i class="fas fa-eye" id="show_eye"></i>
+                                    <i class="fas fa-eye-slash d-none" id="hide_eye"></i>
+                                  </span>
+                                </div>
+                                <button type="button" class="btn btn-primary" id="WifiConnect">Conectar</button>
+                              </form>
+                              <div class="accordion" id="MaisInfo">
+                                <div class="accordion-item">
+                                  <h2 class="accordion-header" id="Header1">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1">
+                                      Mais informações
+                                    </button>
+                                  </h2>
+                                  <div id="collapse1" class="accordion-collapse collapse show" aria-labelledby="header1" data-bs-parent="#accordionMoreInfo">
+                                    <div class="accordion-body">
+                                      <div class="table-responsive">
+                                        <table class="table">
+                                          <thead>
+                                            <tr>
+                                              <th>BSSID (Mac)</th>
+                                              <th>Canal WiFi</th>
+                                              <th>Tipo Encriptação</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            <tr>
+                                              <td id="bssid">--:--:--:--:--:--<br></td>
+                                              <td id="canal">--</td>
+                                              <td id="encriptacao">-------</td>
+                                            </tr>
+                                          </tbody>
+                                        </table>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="container mt-4 p-4 border bg-light">
+                      <h4 class="text-center">Localização do BTX>02</h4>
+                        <form class="form-group">
+                          <input class="form-check-input" type="checkbox" id="check_localizacao" name="localizacao" value="something">
+                          <label class="form-check-label">Mandar posição para o servidor de NTRIP?¹ ²</label>
+                          <p>1&nbsp;Algumas rede ntrip precisam saber sua posição para determinar a base mais proxima automaticamente.<br>2&nbsp;Ao habilitar essa função o BTX sempre vai iniciar em modo de configuração, precisando configurar novamente o ntrip, pode ser configurado um tempo de espera em configurações avançadas.
+                          </p>
+                          <label class="form-label my-2" for="latitude">Latitude: </label>
+                          <input type="text" class="form-control" maxlength="20" id="latitude" value="">
+                          <label class="form-label my-2" for="longitude">Longitude: </label>
+                          <input type="text" class="form-control" maxlength="20" id="longitude" value="">
+                          <div  class="my-2">
+                            <label class="form-label my-2" id="precisao"></label>
+                          </div>
+                          <div class="text-center mt-3">
+                            <button onclick="getlocation()" type="button" class="btn btn-sm btn-primary">Buscar Automaticamente</button>
+                            <button type="button" class="btn btn-sm btn-primary">Salvar Posição</button>
+                          </div>
+                        </form>
+                    </div>
+                    <div>
+                      <form class="form-group mx-1 form-control-lg" id="ClientForm">
+                        <label for="TXClient" class="form-label mt-4 mx-1">Canais de transmissão (0-9)</label>
+                          <select class="form-select" id="TXClient" name="tx">
+                            <option value="0" id="CTX0"></option>
+                            <option value="1" id="CTX1"></option>
+                            <option value="2" id="CTX2"></option>
+                            <option value="3" id="CTX3"></option>
+                            <option value="4" id="CTX4"></option>
+                            <option value="5" id="CTX5"></option>
+                            <option value="6" id="CTX6"></option>
+                            <option value="7" id="CTX7"></option>
+                            <option value="8" id="CTX8"></option>
+                            <option value="9" id="CTX9"></option>
+                          </select>
+                          <label for="PWRClient" class="form-label mt-4 mx-1">Potencia de transmissão</label>
+                          <select class="form-select" id="PWRClient" name="pwr">
+                            <option value="0">Baixo (0.5W)</option>
+                            <option value="1">Médio (1W)</option>
+                            <option value="2">Alto (2W)</option>
+                          </select>
+                          <label for="prt_id" class="form-label mt-4 mx-1">Protocolo de comunicação</label>
+                          <select class="form-select" id="PRTClient" name="prt">
+                            <option value="0">Trimtalk 450s (9600bps)</option>
+                            <option value="1">TRIMMK3 (19200bps)</option>
+                            <option value="2">Transparent EOT (9600bps)</option>
+                            <option value="3">Satel (9600bps)</option>
+                            <option value="4">Satel (19200bps)</option>
+                            <option value="5">South (9600bps)</option>
+                            <option value="6">South (19200bps)</option>
+                          </select>
+                          <label for="HOSTClient" class="form-label mx-2">Numero de IP do host NTRIP ou URL</label>
+                          <div class="input-group mb-3">
+                            <span class="input-group-text">HOST</span>
+                            <input type="text" class="form-control" maxlength="100" required>
+                          </div>
+                          <label for="PORTClient" class="form-label mx-2">Numero da porta do host NTRIP (1 - 65535)</label>
+                          <div class="input-group mb-3">
+                            <span class="input-group-text">PORTA</span>
+                            <input type="text" class="form-control" maxlength="5" id="PORTClient" name="port" value="" required>
+                          </div>
+                          
+                          <label for="USERClient" class="form-label mx-2">Nome de usuario do host NTRIP (maximo de 30 caracteres)</label>
+                          <div class="input-group mb-3">
+                            <span class="input-group-text">Usuario</span>
+                            <input type="text" class="form-control" maxlength="20" id="USERClient" name="user" value="" required>
+                          </div>
+                          <label for="PASSClient" class="form-label mx-2">Senha de usuario do host NTRIP (maximo de 30 caracteres)</label>
+                           <div class="input-group mb-3">
+                            <span class="input-group-text">Senha</span>
+                            <input type="text" class="form-control" maxlength="20" id="PASSClient" name="userpass" value="" required>
+                          </div>
+                          <div class="my-4 text-center">
+                              <button type="button" class="btn btn-sm btn-primary" onclick="SolicitaMNTP()">
+                                Baixar Lista de Mount Points
+                              </button>
+
+                              <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#ModalMNTP">
+                                Adicionar manualmente
+                              </button>
+                          </div>
+                          <div>
+                            <label for="MNTPClient" class="form-label mx-2">Selecione o mount point</label>
+                            <select class="form-select" id="MNTPClient">
+                            </select>
+                          </div>
+                          <div class="my-4 text-center">
+                            <button type="submit" class="btn btn-lg btn-primary">Programar configurações do NTRIP</button>
+                          </div> 
+                      </form>
+                      <div class="modal" id="ModalMNTP" role="dialog">
+                        <div class="modal-dialog" role="document">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h5 class="modal-title">Mount Point</h5>
+                              <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true"></span>
+                              </button>
+                            </div>
+                            <div class="modal-body">
+                              <form>
+                                <label for="mountpt_id" class="form-label mx-2">
+                                  Nome do Mount point do host NTRIP (maximo de 80 caracteres)
+                                </label>
+                                <div class="input-group mb-3">
+                                  <span class="input-group-text">Mount point</span>
+                                  <input type="text" class="form-control"  maxlength="20" id="mountpt_id" name="mountpt" value="" required>
+                                </div>
+                                <div class="my-4 text-center">
+                                  <button type="button" class="btn btn-lg btn-primary">
+                                    Salva Mount Point
+                                  </button>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="header3">
+                
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#MODO3" aria-expanded="false" aria-controls="MODO3">
+                    Modo NTRIP Source
+                    <span id="EmUsoSource" class="badge bg-success mx-auto">Modo em Uso</span>
+                  </button>
+                  
+                </h2>
+                <div id="MODO3" class="accordion-collapse collapse" aria-labelledby="header3" data-bs-parent="#MODOS">
+                  <div class="accordion-body">
+                    Neste modo o BTX>02 recebe correções RTK pela porta serial e as transmite para um servidor NTRIP.
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="header4">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#MODO4" aria-expanded="false" aria-controls="MODO4">
+                    Modo NTRIP Local
+                    <span id="EmUsoLocal" class="badge bg-success mx-auto">Modo em Uso</span>
+                  </button>
+                </h2>
+                <div id="MODO4" class="accordion-collapse collapse" aria-labelledby="header4" data-bs-parent="#MODOS">
+                  <div class="accordion-body">
+                    Neste modo o BTX>02 recebe correções RTK via a porta serial superior e gera uma rede WIFI para que outros dispositivos recebam via NTRIP.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane fade" id="channel" role="tabpanel">
+          <div class="container p-4 my-4 border bg-secondary">
+            <h1 class="text-center">
+              Configurar Canais de radio
+            </h1>
+            <div class="accordion" id="accordionChannel">
+              <div class="accordion" id="accordion2">
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="headerchanel1">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#CanalTX" aria-expanded="false" aria-controls="CanalTX">
+                      Configurar Canais de Transmissão
+                    </button>
+                  </h2>
+                  <div id="CanalTX" class="accordion-collapse collapse" aria-labelledby="headerchanel1" data-bs-parent="#accordion2">
+                    <div class="accordion-body">
+                      <form class="form-group" id="txchanels" method="GET" action="/txchanels">
+                        <div class="input-group mb-3">
+                          <span class="input-group-text">Canal 0</span>
+                          <input type="text" id="ch_0_tx" name="ch_0_tx" class="form-control" maxlength="9" required 
+                            pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                            placeholder="410.00000 - 469.00000">
+                          <span class="input-group-text">Mhz</span>
+                        </div>
+                        <div class="input-group mb-3">
+                          <span class="input-group-text">Canal 1</span>
+                          <input type="text" id="ch_1_tx" name="ch_1_tx" class="form-control" maxlength="9" required
+                            pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                            placeholder="410.00000 - 469.00000">
+                          <span class="input-group-text">Mhz</span>
+                        </div>
+                        <div class="input-group mb-3">
+                          <span class="input-group-text">Canal 2</span>
+                          <input type="text" id="ch_2_tx" name="ch_2_tx" class="form-control" maxlength="9" required
+                            pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                            placeholder="410.00000 - 469.00000">
+                          <span class="input-group-text">Mhz</span>
+                        </div>
+                        <div class="input-group mb-3">
+                          <span class="input-group-text">Canal 3</span>
+                          <input type="text" id="ch_3_tx" name="ch_3_tx" class="form-control" maxlength="9" required
+                            pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                            placeholder="410.00000 - 469.00000">
+                          <span class="input-group-text">Mhz</span>
+                        </div>
+                        <div class="input-group mb-3">
+                          <span class="input-group-text">Canal 4</span>
+                          <input type="text" id="ch_4_tx" name="ch_4_tx" class="form-control" maxlength="9" required
+                            pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                            placeholder="410.00000 - 469.00000">
+                          <span class="input-group-text">Mhz</span>
+                        </div>
+                        <div class="input-group mb-3">
+                          <span class="input-group-text">Canal 5</span>
+                          <input type="text" id="ch_5_tx" name="ch_5_tx" class="form-control" maxlength="9" required
+                            pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                            placeholder="410.00000 - 469.00000">
+                          <span class="input-group-text">Mhz</span>
+                        </div>
+                        <div class="input-group mb-3">
+                          <span class="input-group-text">Canal 6</span>
+                          <input type="text" id="ch_6_tx" name="ch_6_tx" class="form-control" maxlength="9" required
+                            pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                            placeholder="410.00000 - 469.00000">
+                          <span class="input-group-text">Mhz</span>
+                        </div>
+                        <div class="input-group mb-3">
+                          <span class="input-group-text">Canal 7</span>
+                          <input type="text" id="ch_7_tx" name="ch_7_tx" class="form-control" maxlength="9" required
+                            pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                            placeholder="410.00000 - 469.00000">
+                          <span class="input-group-text">Mhz</span>
+                        </div>
+                        <div class="input-group mb-3">
+                          <span class="input-group-text">Canal 8</span>
+                          <input type="text" id="ch_8_tx" name="ch_8_tx" class="form-control" maxlength="9" required
+                            pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                            placeholder="410.00000 - 469.00000">
+                          <span class="input-group-text">Mhz</span>
+                        </div>
+                        <div class="input-group mb-3">
+                          <span class="input-group-text">Canal 9</span>
+                          <input type="text" id="ch_9_tx" name="ch_9_tx" class="form-control" maxlength="9" required
+                            pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                            placeholder="410.00000 - 469.00000">
+                          <span class="input-group-text">Mhz</span>
+                        </div>
+                        <div class="text-center">
+                          <button type="submit" form="txchanels" class="btn btn-primary ">Salvar Mudanças</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="headingchanel2">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#CanalRX" aria-expanded="false" aria-controls="CanalRX">
+                    Configurar Canais de Recepção
+                  </button>
+                </h2>
+                <div id="CanalRX" class="accordion-collapse collapse" aria-labelledby="headingchanel2" data-bs-parent="#accordion2">
+                  <div class="accordion-body">
+                    <form class="form-group" id="rxchanels" method="GET" action="/rxchanels">
+                      <div class="input-group mb-3">
+                        <span class="input-group-text">Canal 0</span>
+                        <input type="text" id="ch_0_rx" name="ch_0_rx" class="form-control" maxlength="9" required
+                          pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                          placeholder="410.00000 - 469.00000">
+                        <span class="input-group-text">Mhz</span>
+                      </div>
+                      <div class="input-group mb-3">
+                        <span class="input-group-text">Canal 1</span>
+                        <input type="text" id="ch_1_rx" name="ch_1_rx" class="form-control" maxlength="9" required
+                          pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                          placeholder="410.00000 - 469.00000">
+                        <span class="input-group-text">Mhz</span>
+                      </div>
+                      <div class="input-group mb-3">
+                        <span class="input-group-text">Canal 2</span>
+                        <input type="text" id="ch_2_rx" name="ch_2_rx" class="form-control" maxlength="9" required
+                          pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                          placeholder="410.00000 - 469.00000">
+                        <span class="input-group-text">Mhz</span>
+                      </div>
+                      <div class="input-group mb-3">
+                        <span class="input-group-text">Canal 3</span>
+                        <input type="text" id="ch_3_rx" name="ch_3_rx" class="form-control" maxlength="9" required
+                          pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                          placeholder="410.00000 - 469.00000">
+                        <span class="input-group-text">Mhz</span>
+                      </div>
+                      <div class="input-group mb-3">
+                        <span class="input-group-text">Canal 4</span>
+                        <input type="text" id="ch_4_rx" name="ch_4_rx" class="form-control" maxlength="9" required
+                          pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                          placeholder="410.00000 - 469.00000">
+                        <span class="input-group-text">Mhz</span>
+                      </div>
+                      <div class="input-group mb-3">
+                        <span class="input-group-text">Canal 5</span>
+                        <input type="text" id="ch_5_rx" name="ch_5_rx" class="form-control" maxlength="9" required
+                          pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                          placeholder="410.00000 - 469.00000">
+                        <span class="input-group-text">Mhz</span>
+                      </div>
+                      <div class="input-group mb-3">
+                        <span class="input-group-text">Canal 6</span>
+                        <input type="text" id="ch_6_rx" name="ch_6_rx" class="form-control" maxlength="9" required
+                          pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                          placeholder="410.00000 - 469.00000">
+                        <span class="input-group-text">Mhz</span>
+                      </div>
+                      <div class="input-group mb-3">
+                        <span class="input-group-text">Canal 7</span>
+                        <input type="text" id="ch_7_rx" name="ch_7_rx" class="form-control" maxlength="9" required
+                          pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                          placeholder="410.00000 - 469.00000">
+                        <span class="input-group-text">Mhz</span>
+                      </div>
+                      <div class="input-group mb-3">
+                        <span class="input-group-text">Canal 8</span>
+                        <input type="text" id="ch_8_rx" name="ch_8_rx" class="form-control" maxlength="9" required
+                          pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                          placeholder="410.00000 - 469.00000">
+                        <span class="input-group-text">Mhz</span>
+                      </div>
+                      <div class="input-group mb-3">
+                        <span class="input-group-text">Canal 9</span>
+                        <input type="text" id="ch_9_rx" name="ch_9_rx" class="form-control" maxlength="9" required
+                          pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}"
+                          placeholder="410.00000 - 469.00000">
+                        <span class="input-group-text">Mhz</span>
+                      </div>
+                      <div class="text-center">
+                        <button type="submit" form="rxchanels" class="btn btn-primary">Salvar Mudanças</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane fade" id="adv_conf">
+            <h1 class="text-center my-4">
+              Configurações Avançadas
+            </h1>
+            <div class="container p-4 my-4 border bg-secondary">
+              <div>
+                <h4>
+                  Tempo de espera para não entrar em modo de configuração logo apos a configuração.¹ ² ³
+                </h4>
+                <form>
+                  <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="00:00" aria-label="TempoEspera" aria-describedby="button-addon2">
+                    <button class="btn btn-primary" type="button" id="button-addon2">Salvar</button>
+                  </div>
+                </form>
+                <p>
+                  1 A contagem de tempo é iniciada assim que sai do modo de configuração e vai para o modo de operação.
+                </p>
+                <p>
+                  2 Tempos muito curtos se ouver alguma interrupção de alimentação enquanto em funcionamento fara o BTX ir para modo de configuração pararam a operação.
+                </p>
+                <p>
+                  3 tempos longos caso tenha movimentação do BTX ele ira iniciar normalmente requisitando uma base em uma localização configurada anteriormente.
+                </p>
+              </div>
+              <div>
+                <h4>
+                  Alimentação de baixa potencia ¹ ²
+                </h4>
+                <form>
+                  <div class="input-group mb-3">
+                    <select class="form-select" id="LowPower" aria-label="LowPWR" aria-describedby="buttonLowPWR">
+                      <option value="1">SIM</option>
+                      <option value="0">NÃO</option>
+                    </select>
+                    <button class="btn btn-primary" type="button" id="buttonLowPWR">Salvar</button>
+                  </div>
+                </form>
+                <p>
+                  1 Limita a potencia do radio em 1W.
+                </p>
+                <p>
+                  2 Suportando fontes de alimentação de 5V 1A.
+                </p>
+              </div>
+            </div>
+            <div>
+              <h1 class="text-center">
+                Informações
+              </h1>
+              <div class="container p-4 my-4 border bg-secondary">
+                <p class="text-left">Marca: Hugen Plus</p>
+                <p class="text-left">Modelo: %model%</p>
+                <p class="text-left">Codigo Serial: %codser%</p>  
+                <p class="text-left">versão de firmware radio: %firver%</p>
+                <p class="text-left">Versão de firmware controle: %controlver%</p>
+              </div>
+            </div>
+            <div>
+              <h1 class="text-center">
+                 Atualizar Firmware
+              </h1>
+              <div class="container p-4 my-4 border bg-secondary">
+                <form>
+                  <div>
+                    <label for="formFileUpdate" class="form-label mt-4">Transferir arquivo de atualização</label>
+                    <input class="form-control" type="file" id="formFileUpdate" aria-describedby="update">
+                    <div class="text-center my-2">
+                      <button class="btn btn-primary" type="button" id="update">Atualizar</button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+    <script >
+      jQuery(document).ready(function PwrStatus(){
+        var PD = "0";
+        var PD12 = "0";
+        var P5V = "1";
+        var EXT = "0";
+        var ExtStatus = "0";
+        if (PD == "1")
+          $("#PDnao").hide();
+        else if (PD == "0")
+          $("#PDsim").hide();
+        if (PD12 == "1")
+          $("#PD12nao").hide();
+        else if (PD12 == "0")
+          $("#PD12sim").hide();
+        if (P5V == "1")
+          $("#5nao").hide();
+        else if (P5V == "0")
+          $("#5sim").hide();  
+        if (EXT == "1")
+          $("#EXTnao").hide();
+        else if (EXT == "0")
+          $("#EXTsim").hide();
+        if (ExtStatus == "1")
+           document.getElementById("EXTpower").value = "1";
+        else if (ExtStatus == "0")
+           document.getElementById("EXTpower").value = "0";
+      });
+      jQuery(function WiFi(){
+        var Wstat = "2";
+        switch(Wstat){
+          case "0": 
+            document.getElementById("WifiStatus").innerHTML="WiFi Parado";
+            break;
+          case "1": 
+            document.getElementById("WifiStatus").innerHTML="Nenhum SSID Disponivel";
+            break;
+          case "2": 
+            document.getElementById("WifiStatus").innerHTML="Procura Completada";
+            break;
+          case "3": 
+            document.getElementById("WifiStatus").innerHTML="WiFi Conectado"; 
+            break;
+          case "4": 
+            document.getElementById("WifiStatus").innerHTML="Conexão Falhou";
+            break;
+          case "5": 
+            document.getElementById("WifiStatus").innerHTML="Conexão Perdida";
+            break;
+          case "6": 
+            document.getElementById("WifiStatus").innerHTML="WiFi Desconectado";
+            break;
+        }
+      });
+        jQuery(function ModoEmUso(){
+          var ModoUso = "0";
+          switch(ModoUso){
+            case "1":
+              $("#EmUsoClient").hide();
+              $("#EmUsoSource").hide();
+              $("#EmUsoLocal").hide();
+            break;
+            case "2":
+              $("#EmUsoSerial").hide();
+              $("#EmUsoSource").hide();
+              $("#EmUsoLocal").hide();
+            break;
+            case "3":
+              $("#EmUsoSerial").hide();
+              $("#EmUsoClient").hide();
+              $("#EmUsoLocal").hide();
+            break;
+            case "4":
+              $("#EmUsoSerial").hide();
+              $("#EmUsoClient").hide();
+              $("#EmUsoSource").hide();
+            break;
+            default:
+              $("#EmUsoSerial").hide();
+              $("#EmUsoClient").hide();
+              $("#EmUsoSource").hide();
+              $("#EmUsoLocal").hide();
+          }    
+        });
+ 
+function SolicitaMNTP(){
+  var NunberOfMNTP = 9;
+  var TABLE = ["TEST0","TEST1","TEST2","TEST3","TEST4","TEST5","TEST6","TEST7","TEST8","TEST9"];
+  var select = document.getElementById('MNTPClient');
+    for (var i = 0; i <=NunberOfMNTP; i++){
+      var opt = document.createElement("option");
+      opt.value = i;
+      opt.innerHTML = TABLE[i];
+      select.appendChild(opt);
+    }
+}
+
+const optionPosition = {
+  enableHighAccuracy: true,
+  timeout: 100000,
+};
+
+function getlocation(){
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(showPosition,errorPosition,optionPosition);
+  } else { 
+    alert("Geolocalização não suportada pelo navegador!");
+  }
+}
+function showPosition(position){
+  var accuracy = document.createElement("p");
+  accuracy.innerHTML = "Precisão da localização = " + position.coords.accuracy + " metros";
+  document.getElementById("latitude").value = position.coords.latitude;
+  document.getElementById("longitude").value = position.coords.longitude;
+  document.getElementById("precisao").appendChild(accuracy);
+}
+function errorPosition(error){
+  alert("Erro requisitando a posição do navegador verifique se a permissão de localização está habilitada!");
+}
+
+    </script>
+  </body>
+</html>
+
+
+
+
+

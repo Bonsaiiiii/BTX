@@ -1,0 +1,69 @@
+<html><head>
+    <meta charset="utf-8">
+    <script>
+      function imprimeLogin() // função, que quando clicar no botão, será enviado uma requisição POST para o server
+      {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", '/', true); // inicializa uma nova requisição, ou reinicializa uma requisição já existente.
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // define o valor do cabeçalho de uma requisição HTTP
+	var senha = document.getElementById('senhaInput').value;
+	var ssid = document.getElementById('ssidInput').value;
+
+        xhr.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+             // Typical action to be performed when the document is ready:
+            alert("Requisição enviada com sucesso");
+          }else if(this.readyState == 4 && this.status != 200){
+          alert("Requisição não foi enviada, pois houve alguma falha");
+          }
+        };
+        xhr.send("ssid=" + ssid + "&senha=" + senha); // envia uma requisição para o servidor.
+      }
+
+
+function requestString() {
+  const url = "192.168.4.1"; // Replace with your actual URL endpoint
+  const xhr = new XMLHttpRequest();
+
+  xhr.open("GET", url);
+
+  xhr.onload = function () {
+    if (xhr.status === 200) {
+      const responseString = xhr.responseText;
+      console.log("Received string:", responseString);
+      // You can now use the responseString in your code
+      // For example, update an HTML element
+      document.getElementById("novoPing").textContent = responseString;
+    } else {
+      console.error("Error requesting string:", xhr.statusText);
+    }
+  };
+
+  xhr.onerror = function () {
+    console.error("Network error:", xhr.statusText);
+  };
+
+  xhr.send();
+}
+
+// Call the function to initiate the request
+requestString();
+						
+    </script>
+  </head>
+  <body>
+
+  <h1>Enviar Login e Senha</h1>
+
+<p>O valor ping é: <span id="ping-valor"></span></p>
+  
+  <form onsubmit="imprimeLogin(); return false;">
+    <label for="ssidInput">Login:</label>
+    <input type="text" id="ssidInput" name="login">
+    <label for="senhaInput">Senha:</label>
+    <input type="text" id="senhaInput" name="senha">
+    <button type="submit">Enviar</button>
+  </form>
+
+  
+</body></html>
