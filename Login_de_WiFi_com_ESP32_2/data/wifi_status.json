@@ -1,0 +1,11 @@
+{
+  "Conectado": false,
+  "Sshield": false,
+  "Espera": false,
+  "Sredes": false,
+  "Completo": false,
+  "Falha": false,
+  "ConexPerdida": false,
+  "Desconectado": true,
+  "Erro": false
+}
