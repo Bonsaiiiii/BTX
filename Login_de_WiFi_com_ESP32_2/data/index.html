@@ -1,0 +1,418 @@
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="/bootstrap.min.css">
+	<script src="/jquery.min.js"></script>
+	<script src="/bootstrap.min.js"></script>
+	<style>
+		.loader {
+			display: inline-block;
+			border: 16px solid #f3f3f3;
+			border-radius: 50%;
+			border-top: 16px solid #3498db;
+			width: 10px;
+			height: 1px;
+			-webkit-animation: spin 2s linear infinite;
+			/* Safari */
+			animation: spin 2s linear infinite;
+		}
+
+		/* Safari */
+		@-webkit-keyframes spin {
+			0% {
+				-webkit-transform: rotate(0deg);
+			}
+
+			100% {
+				-webkit-transform: rotate(360deg);
+			}
+		}
+
+		@keyframes spin {
+			0% {
+				transform: rotate(0deg);
+			}
+
+			100% {
+				transform: rotate(360deg);
+			}
+		}
+
+		.form-control {
+			width: 200px;
+			display: inline-block;
+			height: 20px;
+		}
+
+		.btn.btn-secondary {
+			width: 100px;
+			height: 15px;
+			text-align: center;
+			line-height: 0;
+		}
+	</style>
+</head>
+<script>
+
+	var liberacao;
+	var qtdTentativas = 0;
+	var messageElement;
+	var showSSID;
+	var redeVálida;
+
+	function imprimeLogin() // função, que quando clicar no botão, será enviado uma requisição POST para o server
+	{
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", '/', true); // inicializa uma nova requisição, ou reinicializa uma requisição já existente.
+		xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // define o valor do cabeçalho de uma requisição HTTP
+		var senha = document.getElementById('senhaInput').value;
+		var ssid = document.getElementById('ssidInput').value;
+		showSSID = document.getElementById('ssidInput').value;
+
+		xhr.onreadystatechange = function () {
+			if (this.readyState == 4 && this.status == 200) {
+				// Typical action to be performed when the document is ready:
+				alert("Requisição enviada com sucesso");
+			} else if (this.readyState == 4 && this.status != 200) {
+				alert("Requisição não foi enviada, pois houve alguma falha");
+			}
+		};
+		xhr.send("ssid=" + ssid + "&senha=" + senha); // envia uma requisição para o servidor.
+	}
+
+	const xmlhttp_wifis = new XMLHttpRequest();
+	xmlhttp_wifis.onreadystatechange = function () {
+		if (this.status === 200) {
+			const myObj_wifis = JSON.parse(this.responseText);
+			const messageElement = $("#wifi-status-message");
+			const inputSsids = [];
+			const inputSenhas = [];
+			const ssid = document.getElementById("ssidInput");
+			const senha = document.getElementById("senhaInput");
+			if (myObj_wifis.NoSsid) {
+				messageElement.html("<p style='color: red;'>Rede não encontrada, reconecte na rede e verifique as credenciais</p>");
+			} else if (myObj_wifis.SenhaIncorreta) {
+				messageElement.html("<p style='color: red;'>Senha Incorreta </p>");
+			} else if (myObj_wifis.Conectado) {
+				messageElement.html("<p style='color: green;'>Conectado à rede Wi-Fi: " + showSSID + "</p>");
+				inputSsids.push(ssid.value);
+				inputSenhas.push(senha.value);
+				console.log(inputSsids, inputSenhas);
+			} else {
+				messageElement.html("<p>Verificando status da conexão Wi-Fi...</p>");
+			}
+		} else {
+			console.error("Error fetching Wi-Fi status:", this.statusText);
+		}
+	};
+
+	xmlhttp_wifis.open("GET", "wifi_status.json");
+	xmlhttp_wifis.send();
+
+	$(document).ready(function () {
+		$('#spinner').hide();
+		$('#send_cred').on('click', function (event) {
+			$('#spinner').show();
+			setTimeout(function () {
+				const updatedMessage = messageElement;
+				$("#wifi-status-message").html(updatedMessage);
+				$('#spinner').hide();
+				xmlhttp_wifis.open("GET", "wifi_status.json");
+				xmlhttp_wifis.send();
+			}, 10000);
+		});
+	});
+
+	// Função main é executada ao navegador terminar de carregar a página
+	function main() {
+		liberacao = false;
+		let divTable = document.getElementById("divTable");
+		let divTitulo = document.getElementById("divTitulo");
+
+		let body = document.body;
+		let html = document.documentElement;
+		let heightScreen = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
+
+		divTable.style.height = heightScreen - (divTitulo.offsetHeight + 16 + 2) + "px";
+
+		var modalInfo = document.getElementById('modal-info');
+		modalInfo.addEventListener('show.bs.modal', function (event) {
+
+			let button = event.relatedTarget;
+
+			let ssid = decodeURI(button.getAttribute('data-bs-ssid'));
+			let bssid = decodeURI(button.getAttribute('data-bs-bssid'));
+			let canal = decodeURI(button.getAttribute('data-bs-canal'));
+			let encriptacao = decodeURI(button.getAttribute('data-bs-encriptacao'));
+
+			let modalTitle = modalInfo.querySelector('.modal-title');
+			let modalBssid = modalInfo.querySelector('.modal-body #bssid');
+			let modalCanal = modalInfo.querySelector('.modal-body #canal');
+			let modalEncriptacao = modalInfo.querySelector('.modal-body #encriptacao');
+
+			modalTitle.textContent = "Mais dados sobre a rede " + ssid;
+			modalBssid.textContent = bssid;
+			modalCanal.textContent = canal;
+			modalEncriptacao.textContent = encriptacao;
+
+		}); // ao ser exibido as informações extras na tela, é substituído os valores padrão pelos valores da rede selecionada
+
+		liberacao = true;
+		document.getElementById("reload").setAttribute('disabled', '');
+		document.getElementById("spinner-reload").style.display = '';
+		removeTodasLinhaTable();
+	}
+
+	function adicionaLinhaTable(ssid, rssi, bssid, canal, encriptacao) // para cada rede WiFi, é adicionada uma linha na tabela
+	{
+
+		let elementoPai = document.getElementById("elementoPai");
+		elementoPai.innerHTML += `
+			<tr>
+				<td>${ssid}</td>
+				<td>${rssi}</td>
+				<td>
+					<button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#modal-info" data-bs-ssid=${encodeURI(ssid)} data-bs-bssid=${encodeURI(bssid)} data-bs-canal=${encodeURI(canal)} data-bs-encriptacao=${encodeURI(encriptacao)}>
+						<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none">
+							<path fill-rule="evenodd" clip-rule="evenodd" d="M5 15C6.65685 15 8 13.6569 8 12C8 10.3431 6.65685 9 5 9C3.34315 9 2 10.3431 2 12C2 13.6569 3.34315 15 5 15ZM5 13C5.55228 13 6 12.5523 6 12C6 11.4477 5.55228 11 5 11C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13Z" fill="currentColor"></path>
+							<path fill-rule="evenodd" clip-rule="evenodd" d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15ZM12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z" fill="currentColor"></path>
+							<path fill-rule="evenodd" clip-rule="evenodd" d="M22 12C22 13.6569 20.6569 15 19 15C17.3431 15 16 13.6569 16 12C16 10.3431 17.3431 9 19 9C20.6569 9 22 10.3431 22 12ZM20 12C20 12.5523 19.5523 13 19 13C18.4477 13 18 12.5523 18 12C18 11.4477 18.4477 11 19 11C19.5523 11 20 11.4477 20 12Z" fill="currentColor"></path>
+						</svg>
+					</button>
+				</td>
+			</tr>
+			`;
+
+	}
+
+	function removeTodasLinhaTable() // remove todas as linhas da tabela de redes
+	{
+		let elementoPai = document.getElementById("elementoPai");
+		elementoPai.innerHTML = "";
+	}
+
+	function getContent(url) // obtém o conteúdo de um url (no caso deste sistema, é obtido o conteúdo da página "/scan")
+	{
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', url, true);
+		xhr.onload = function (e) {
+			if (xhr.readyState === 4) {
+				if (xhr.status === 200) {
+					if (xhr.responseText == "[]" || xhr.responseText == undefined) {
+						qtdTentativas++;
+						if (qtdTentativas < 5) {
+							liberacao = true;
+						}
+					} else {
+						removeTodasLinhaTable();
+						qtdTentativas = 0;
+						document.getElementById("reload").removeAttribute('disabled');
+						document.getElementById("spinner-reload").style.display = 'none';
+
+						// Realizar todo procedimento aqui
+						let json = xhr.responseText;
+						json = JSON.parse(json);
+						let tempo = new Date(Date.now());
+						if (json.length != 0) {
+							document.getElementById("tempoDoDadoObtido").innerHTML = `Dados obtidos em <strong>${tempo.getDate()}/${tempo.getMonth() + 1}/${tempo.getFullYear()}</strong> às <strong>${tempo.getHours()}:${tempo.getMinutes()}:${tempo.getSeconds()}</strong>`;
+						} else {
+							document.getElementById("tempoDoDadoObtido").innerHTML = `Dados obtidos em <strong>--/--/----</strong> às <strong>--:--:--</strong>`;
+						}
+						for (var i = 0; i < json.length; i++) {
+							let secure = json[i].secure;
+
+							// O tipo de encriptação é enviada por um número, que deve ser substituído para uma frase legível por humano
+							switch (secure) {
+								case 0:
+									secure = "Aberta";
+									break;
+								case 1:
+									secure = "WEP";
+									break;
+								case 2:
+									secure = "WPA_PSK";
+									break;
+								case 3:
+									secure = "WPA2_PSK";
+									break;
+								case 4:
+									secure = "WPA_WPA2_PSK";
+									break;
+								case 5:
+									secure = "WPA2_ENTERPRISE";
+									break;
+								case 6:
+									secure = "WIFI_AUTH_MAX";
+									break;
+							}
+
+							adicionaLinhaTable(String(json[i].ssid), String(json[i].rssi), String(json[i].bssid), String(json[i].channel), secure);
+						}
+					}
+				} else {
+					qtdTentativas++;
+					if (qtdTentativas < 5) {
+						liberacao = true;
+					}
+				}
+				if (qtdTentativas >= 5) // se o número de tentativas de obtenção das redes disponíveis for maior que 5, é mostrado uma mensagem de erro
+				{
+					liberacao = false;
+					document.getElementById("headerModalError").innerText = "Erro: Requisição falha";
+					document.getElementById("bodyModalError").innerText = "A requisição HTTP falhou. Tente novamente após verificar a conexão elétrica do ESP32";
+					var myModal = new bootstrap.Modal(document.getElementById('modal-error')).show();
+					qtdTentativas = 0;
+					document.getElementById("reload").removeAttribute('disabled');
+					document.getElementById("spinner-reload").style.display = 'none';
+					removeTodasLinhaTable();
+				}
+
+			}
+		};
+		xhr.onerror = function (e) // se houver qualquer erro na requisição, também é mostrado em uma mensagem de erro
+		{
+			liberacao = false;
+			document.getElementById("headerModalError").innerText = "Erro: Requisição falha";
+			document.getElementById("bodyModalError").innerText = "A requisição HTTP falhou. Tente novamente após verificar a conexão elétrica do ESP32";
+			var myModal = new bootstrap.Modal(document.getElementById('modal-error')).show();
+			qtdTentativas = 0;
+			document.getElementById("reload").removeAttribute('disabled');
+			document.getElementById("spinner-reload").style.display = 'none';
+			removeTodasLinhaTable();
+		};
+		xhr.send(null);
+	}
+
+	setInterval(verificacao, 300);
+	setInterval(autoBusca, 20000); // a cada 10 segundos, uam nova requsiiçaõ é efetuada
+
+	document.getElementById("reload").addEventListener('click', function (event) // ao ser clicado no botão de requisitar as redes disponíveis manualmente, é executado o processo de obtenção
+	{
+		document.getElementById("reload").setAttribute('disabled', '');
+		document.getElementById("spinner-reload").style.display = '';
+		liberacao = true;
+	});
+
+	function verificacao() {
+		if (liberacao == true && $.fn.modal) // se poder fazer uam requisição E a biblioteca bootstrap tiver sido carregada completamente, é executado o processo de preenchiemnto da tabela
+		{
+			liberacao = false;
+			preencheTable();
+		}
+	}
+
+	function autoBusca() {
+		liberacao = true;
+	}
+
+
+
+	function preencheTable() // preenche a tabela com os dados das redes disponíveis
+	{
+		getContent("/scan");
+	}
+
+	window.onload = main(); // ao ser carregado a página, é executada a função main()	
+
+	function imprimeLogin() // função, que quando clicar no botão, será enviado uma requisição POST para o server
+	{
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", '/', true); // inicializa uma nova requisição, ou reinicializa uma requisição já existente.
+		xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // define o valor do cabeçalho de uma requisição HTTP
+		var senha = document.getElementById('senhaInput').value;
+		var ssid = document.getElementById('ssidInput').value;
+		showSSID = document.getElementById('ssidInput').value;
+
+		xhr.onreadystatechange = function () {
+			if (this.readyState == 4 && this.status == 200) {
+				// Typical action to be performed when the document is ready:
+				alert("Requisição enviada com sucesso");
+			} else if (this.readyState == 4 && this.status != 200) {
+				alert("Requisição não foi enviada, pois houve alguma falha");
+			}
+		};
+		xhr.send("ssid=" + ssid + "&senha=" + senha); // envia uma requisição para o servidor.
+	}
+
+</script>
+
+<body style="margin: 1px;" class="">
+
+	<div id="tigrao"></div>
+
+	<form class="text-center" onsubmit="imprimeLogin();  return false;">
+		<label for="ssidInput">Login:</label>
+		<input class="form-control" type="text" id="ssidInput" name="login" value="Starlink 2.4GHz">
+		<label for="senhaInput">Senha:</label>
+		<input class="form-control" type="text" id="senhaInput" name="senha" value="32851112">
+		<button class="btn btn-secondary" type="submit" id="send_cred">Enviar</button>
+		<div class="loader" id="spinner"></div>
+		<div id="wifi-status-message"></div>
+	</form>
+
+
+	<div id="divTitulo">
+		<h1>Listagem de WiFi com ESP32</h1>
+		<p>Veja o post deste projeto no&nbsp;<a href="https://blog.eletrogate.com/" target="_blank">Blog Eletrogate</a>
+		</p><button class="btn btn-primary" id="reload" type="button"
+			style="width: 60px;height: 48px;padding: 1px;margin: 2px;margin-bottom: 10px;"><svg
+				xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16"
+				class="bi bi-arrow-clockwise" style="height: 40px;width: 40px;padding: 4px;">
+				<path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"></path>
+				<path
+					d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z">
+				</path>
+			</svg></button><span class="spinner-border" role="status" id="spinner-reload" style="display: none;"></span>
+		<p id="tempoDoDadoObtido">Dados obtidos em <strong>--/--/----</strong> às <strong>--:--:--</strong></p>
+	</div>
+	<div class="table-responsive" id="divTable" style="height: 456px;">
+		<table class="table table-hover table-bordered" style="--bs-table-hover-bg: rgba(0, 0, 0, 0.185);">
+			<thead class="table-light">
+				<tr>
+					<th style="position: sticky;top: 0;">SSID</th>
+					<th style="position: sticky;   top: 0;">Nível RSSI</th>
+					<th style="position: sticky;   top: 0;">Mais dados</th>
+				</tr>
+			</thead>
+			<tbody id="elementoPai"></tbody>
+		</table>
+	</div>
+	<div class="modal fade" role="dialog" tabindex="-1" id="modal-info">
+		<div class="modal-dialog modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title">Mais dados sobre a rede</h4><button type="button" class="btn-close"
+						data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div class="table-responsive">
+						<table class="table">
+							<thead>
+								<tr>
+									<th>BSSID (Mac)</th>
+									<th>Canal WiFi</th>
+									<th>Tipo Encriptação</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td id="bssid">--:--:--:--:--:--<br></td>
+									<td id="canal">--</td>
+									<td id="encriptacao">-------</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="modal-footer"><button class="btn btn-secondary" type="button"
+						data-bs-dismiss="modal">Fechar</button></div>
+			</div>
+		</div>
+	</div>
+
+
+</body>
+
+</html>
