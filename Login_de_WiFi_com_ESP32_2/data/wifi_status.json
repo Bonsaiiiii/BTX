@@ -3,5 +3,6 @@
   "NoSsid": false,
   "Desconectado": true,
   "Erro": false,
-  "SenhaIncorreta": false
+  "SenhaIncorreta": false,
+  "Espera": false
 }
