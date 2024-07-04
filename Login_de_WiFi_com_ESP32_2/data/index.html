@@ -56,7 +56,7 @@
 </head>
 <body style="margin: 1px;" class="">
 
-	<!--<form class="text-center" onsubmit="imprimeLogin();  return false;">
+<!--<form class="text-center" onsubmit="imprimeLogin();  return false;">
 		<label for="ssidInput">Login:</label>
 		<input class="form-control" type="text" id="ssidInput" name="login" value="Starlink 2.4GHz">
 		<label for="senhaInput">Senha:</label>
@@ -73,12 +73,13 @@
                 <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"></path>
                 <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"></path>
             </svg></button><span class="spinner-border" role="status" id="spinner-reload" style="display:none;"></span>
+			<button onclick="autoBusca()" class="btn btn-secondary">Buscar redes</button>
         <p id="tempoDoDadoObtido">Dados obtidos em <strong>--/--/----</strong> às <strong>--:--:--</strong></p>
     </div>
     <div class="table-responsive" id="divTable">
         <table class="table table-hover table-bordered" style="--bs-table-hover-bg: rgba(0, 0, 0, 0.185);">
             <thead class="table-light">
-                <tr>
+                <tr>modal
                     <th style="position: sticky;top: 0;">SSID</th>
                     <th style="position: sticky;   top: 0;">Nível RSSI</th>
                     <th style="position: sticky;   top: 0;">Mais dados</th>
@@ -116,13 +117,10 @@
                                 <tr>
 									<td id="ssid">-------</td>
 									<td><form class="text-center" onsubmit="imprimeLogin();  return false;">
-										<label for="ssidInput">Login:</label>
-										<input class="form-control" type="text" id="ssidInput" name="login" value="Starlink 2.4GHz">
-										<label for="senhaInput">Login:</label>
-										<input class="form-control" type="text" id="senhaInput" name="senha" value="32851112">
-										<button class="btn btn-secondary" type="submit" id="send_cred">Enviar</button>
-										<div class="loader" id="spinner"></div>
-										<div id="wifi-status-message"></div>
+									<input class="form-control" type="text" id="senhaInput" name="senha" value="32851112">
+									<button class="btn btn-secondary" type="submit" id="send_cred">Enviar</button>
+									<div class="loader" id="spinner"></div>
+									<div id="wifi-status-message"></div>
 									</form></td>
                                 </tr>
                             </tbody>
@@ -155,6 +153,20 @@
 	var messageElement;
 	var showSSID;
 	var redeVálida;
+	var login;
+
+	//var validInputs;
+
+	//const allowedValue = validInputs; // Replace with your variable's value
+	//const inputField = document.getElementById("ssidInput");
+
+	//inputField.addEventListener("blur", function() {
+    	//if (this.value !== allowedValue) {
+        	// Correction logic (e.g., reset input, display error message)
+        	//this.value = ""; // Reset input
+        	//console.error("Invalid value. Please enter:", validInputs);
+    	//}
+	//});
 
 	function imprimeLogin() // função, que quando clicar no botão, será enviado uma requisição POST para o server
 	{
@@ -162,8 +174,8 @@
 		xhr.open("POST", '/', true); // inicializa uma nova requisição, ou reinicializa uma requisição já existente.
 		xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // define o valor do cabeçalho de uma requisição HTTP
 		var senha = document.getElementById('senhaInput').value;
-		var ssid = document.getElementById('ssidInput').value;
-		showSSID = document.getElementById('ssidInput').value;
+		var login = $('#ssid').html();
+		showSSID = $('#ssid').html();
 
 		xhr.onreadystatechange = function () {
 			if (this.readyState == 4 && this.status == 200) {
@@ -173,7 +185,7 @@
 				alert("Requisição não foi enviada, pois houve alguma falha");
 			}
 		};
-		xhr.send("ssid=" + ssid + "&senha=" + senha); // envia uma requisição para o servidor.
+		xhr.send("ssid=" + login + "&senha=" + senha); // envia uma requisição para o servidor.
 	}
 
 	const xmlhttp_wifis = new XMLHttpRequest();
@@ -189,6 +201,8 @@
 				messageElement.html("<p style='color: red;'>Rede não encontrada, reconecte na rede e verifique as credenciais</p>");
 			} else if (myObj_wifis.SenhaIncorreta) {
 				messageElement.html("<p style='color: red;'>Senha Incorreta </p>");
+			} else if (myObj_wifis.Espera) {
+				messageElement.html("<p style='color: red;'>Tempo de espera excedeu, tente novamente </p>");
 			} else if (myObj_wifis.Conectado) {
 				messageElement.html("<p style='color: green;'>Conectado à rede Wi-Fi: " + showSSID + "</p>");
 				inputSsids.push(ssid.value);
@@ -215,29 +229,10 @@
 				$('#spinner').hide();
 				xmlhttp_wifis.open("GET", "wifi_status.json");
 				xmlhttp_wifis.send();
-			}, 10000);
+			}, 8000);
 		});
 	});
 
-	function imprimeLogin() // função, que quando clicar no botão, será enviado uma requisição POST para o server
-	{
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", '/', true); // inicializa uma nova requisição, ou reinicializa uma requisição já existente.
-		xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // define o valor do cabeçalho de uma requisição HTTP
-		var senha = document.getElementById('senhaInput').value;
-		var ssid = document.getElementById('ssidInput').value;
-		showSSID = document.getElementById('ssidInput').value;
-
-		xhr.onreadystatechange = function () {
-			if (this.readyState == 4 && this.status == 200) {
-				// Typical action to be performed when the document is ready:
-				alert("Requisição enviada com sucesso");
-			} else if (this.readyState == 4 && this.status != 200) {
-				alert("Requisição não foi enviada, pois houve alguma falha");
-			}
-		};
-		xhr.send("ssid=" + ssid + "&senha=" + senha); // envia uma requisição para o servidor.
-	}
 
 	function main() {
 		liberacao = false;
@@ -401,7 +396,6 @@
 	}
 
 	setInterval(verificacao, 500);
-	setInterval(autoBusca, 30000); // a cada 10 segundos, uam nova requsiiçaõ é efetuada
 
 	document.getElementById("reload").addEventListener('click', function (event) // ao ser clicado no botão de requisitar as redes disponíveis manualmente, é executado o processo de obtenção
 	{

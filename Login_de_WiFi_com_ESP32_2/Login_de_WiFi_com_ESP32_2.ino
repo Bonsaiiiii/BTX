@@ -7,9 +7,9 @@
 #include <ArduinoJson.h>
 
 #define WifiS "/wifi_status.json"
-#define size_wifis 128
+#define size_wifis 256
 
-bool Conectado, NoSsid, Desconectado, Erro, SenhaIncorreta;
+bool Conectado, NoSsid, Desconectado, Erro, SenhaIncorreta, Espera;
 
 AsyncWebServer server(80);
 
@@ -27,6 +27,7 @@ bool loaddata(String filename){
               Desconectado = json["Desconectado"];
               Erro = json["Erro"];
               SenhaIncorreta = json["SenhaIncorreta"];
+              Espera = json["Espera"];
               return true;
           }else{
               Serial.println("Failed to load wifi status");
@@ -46,6 +47,7 @@ void saveConfigFile(String filename){
     json["Desconectado"] = Desconectado;
     json["Erro"] = Erro;
     json["SenhaIncorreta"] = SenhaIncorreta;
+    json["Espera"] = Espera;
     File configFile = SPIFFS.open(filename, "w");
     if (!configFile){
       Serial.println("failed to open radio config file for writing");
@@ -119,9 +121,10 @@ void setup() {
     request->send(SPIFFS, "/index.html", "text/html"); // //Envia página "/index.html" como texto html
   });
 
+  // disponoboliza o url "/scan" para que quando acessado, mostre os dados das rede WiFi disponíveis
   server.on("/scan", HTTP_GET, [](AsyncWebServerRequest * request) {
     Serial.println("Pagina /scan acessada");
-    String json = "["; // é aberto um colchete, para criação de um objeto JSON
+    String json = "["; // é aberto um colchete, para criação de um objeto JSON   
     int varredura = WiFi.scanComplete(); // Obtém o resultado da varredura assíncrona
     if (varredura == -2)
     {
@@ -191,10 +194,10 @@ void setup() {
 
 void loop() {
   if(flag_novarede){ // Quando a flag é acionada o wifi é disconectado e é tentado conectar em uma nova rede
+    WiFi.disconnect();
     delay(100);
     Serial.println(novoSsid);
     Serial.println(novaSenha);
-    WiFi.disconnect();
     WiFi.begin(novoSsid, novaSenha);
     int i = 0;
     while (WiFi.status() != WL_CONNECTED&&flag_erro==false) {  // Enquanto o status for diferente de conectado e a flag erro for falsa
@@ -212,6 +215,7 @@ void loop() {
             Desconectado = false;
             NoSsid = false;
             SenhaIncorreta = false;
+            Espera = false;
           }
           break;
           case WL_NO_SSID_AVAIL:
@@ -226,7 +230,9 @@ void loop() {
           if(estado!=3){
             Serial.println("wifi em espera");
             estado=3;
-            Conectado = true; 
+            Espera = true;
+            NoSsid = false;
+            SenhaIncorreta = false;
           }
           break;
           case WL_DISCONNECTED:
@@ -249,8 +255,10 @@ void loop() {
     if(flag_erro){                                   // caso a flag erro for true ele retornará para a rede inicial
       Serial.println("reconecta a rede padrão!");
       Serial.println(WiFi.softAPIP());   // printará o ip caso voltar a rede original
+      Serial.println(WiFi.localIP());
       Erro = true;
-      Conectado = false;    
+      Conectado = false;
+      Desconectado = true;    
     }else{
       Serial.println(WiFi.localIP());    // printará o ip da nova rede
       Serial.println(WiFi.softAPIP());
@@ -265,9 +273,6 @@ void loop() {
   Serial.print("Senha errada= ");Serial.println(SenhaIncorreta);
   Serial.print("Ssid errado= ");Serial.println(NoSsid);
   Serial.println(WiFi.status());
-      if (WiFi.status()==WL_NO_SSID_AVAIL) {
-      ESP.restart();
-      }
   // WL_CONNECTION_LOST: ainda pode ser útil
   }
 }
