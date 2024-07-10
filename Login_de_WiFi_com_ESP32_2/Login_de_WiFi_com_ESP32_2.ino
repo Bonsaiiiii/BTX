@@ -194,8 +194,6 @@ void setup() {
 
 void loop() {
   if(flag_novarede){ // Quando a flag é acionada o wifi é disconectado e é tentado conectar em uma nova rede
-    WiFi.disconnect();
-    delay(100);
     Serial.println(novoSsid);
     Serial.println(novaSenha);
     WiFi.begin(novoSsid, novaSenha);
@@ -256,6 +254,8 @@ void loop() {
       Serial.println("reconecta a rede padrão!");
       Serial.println(WiFi.softAPIP());   // printará o ip caso voltar a rede original
       Serial.println(WiFi.localIP());
+      WiFi.mode(WIFI_AP);
+      WiFi.softAP(ssid, password);
       Erro = true;
       Conectado = false;
       Desconectado = true;    
@@ -289,12 +289,4 @@ void loop() {
 
 //    Serial.println("\nPing em " + String(remoteHost) + "...");
 
-  //Ping no remoteHost
-//  if (Ping.ping(remoteHost, 3)) {      //Parâmetros: (remoteHost, quantidade_pings (default=5))
-//    Serial.print(Ping.averageTime());  //Retorna o tempo médio dos pings
-//    Serial.println(" ms");
-//  } else {
-//    Serial.println("Erro.");
-//  }
-//  delay(3000);
-//} 
+//  Ping no remoteHost
