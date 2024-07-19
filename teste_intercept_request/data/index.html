@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<script src="/jquery.min.js"></script>
+  	<script src="/bootstrap.min.js"></script>
+</head>
+<body>
+	<button onclick="loc()">Get Location</button>
+	<p id="latitude" ></p>
+	<p id="longitude"></p>
+	<p id="altitude"></p>
+	<p id="precisao"></p>
+
+<script type="text/javascript">
+	function requestLoc(){
+		const xmlhttp_board = new XMLHttpRequest();
+  		xmlhttp_board.onload = function() {
+    		const myObj_board = JSON.parse(this.responseText);
+    		document.getElementById("latitude").innerHTML = myObj_board.latitude;
+    		document.getElementById("longitude").innerHTML = myObj_board.longitude;
+    		document.getElementById("altitude").innerHTML = myObj_board.altitude;
+    		document.getElementById("precisao").innerHTML = myObj_board.precisao;
+
+  		};
+  		xmlhttp_board.open("GET", "loc");
+  		xmlhttp_board.send();
+	}
+	function loc(){
+		for(let i=0;i<2;i++){
+			requestLoc();
+
+		}
+  	}
+</script>
+</body>
+</html>
