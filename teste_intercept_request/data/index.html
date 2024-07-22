@@ -6,13 +6,18 @@
   	<script src="/bootstrap.min.js"></script>
 </head>
 <body>
-	<button onclick="loc()">Get Location</button>
+	<button onclick="requestLoc()">Get Location</button>
 	<p id="latitude" ></p>
 	<p id="longitude"></p>
 	<p id="altitude"></p>
 	<p id="precisao"></p>
 
 <script type="text/javascript">
+
+document.addEventListener('DOMContentLoaded', function() {
+    requestLoc();
+});
+
 	function requestLoc(){
 		const xmlhttp_board = new XMLHttpRequest();
   		xmlhttp_board.onload = function() {

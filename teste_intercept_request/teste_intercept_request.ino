@@ -4,6 +4,9 @@
 #include "SPIFFS.h"
 #include "FS.h"
 #include "ArduinoJson.h"
+#include "ESPmDNS.h"
+
+const char* host = "BTX02";
 
 AsyncWebServer server(80);
 
@@ -19,6 +22,7 @@ void setup() {
   IPAddress Ip(172, 217, 28, 1);    //setto IP Access Point same as gateway
   IPAddress NMask(255, 255, 255, 0);
   WiFi.softAPConfig(Ip, Ip, NMask);
+  MDNS.begin(host); 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
       request->send(SPIFFS, "/index.html", String(),false);
   });
