@@ -1428,7 +1428,7 @@ void setup(){
     delay(100);
     //Serial.println("Setting the AP");
     IPAddress Ip(192, 168, 0, 1);    //setto IP Access Point same as gateway
-    IPAddress Iplocal(192, 168, 0, 10); 
+    IPAddress Iplocal(192, 168, 0, 1); 
     IPAddress NMask(255, 255, 255, 0);
     WiFi.softAPConfig(Iplocal, Ip, NMask);
     dnsServer.setTTL(300);
@@ -1441,6 +1441,9 @@ void setup(){
       conf_ntrip=0;
       conf_board=0;
       conf_exit=0;
+    });
+    server.on("/generate_204", HTTP_GET, [](AsyncWebServerRequest *request){
+      request->send(204);
     });
     //server.on("/bootstrap.min.css", HTTP_GET, [](AsyncWebServerRequest *request){
       //request->send(SPIFFS, "/bootstrap.min.css", "text/css");
