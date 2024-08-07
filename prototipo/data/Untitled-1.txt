@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/bootstrap.min.css">
-  <link rel="stylesheet" href="/jquery-ui.css">
-  <script src="/jquery.min.js"></script>
+  <!--<link rel="stylesheet" href="/jquery-ui.css">
   <script src="/bootstrap.min.js"></script>
-  <script src="/jquery-ui.js"></script>
+  <script src="/jquery.min.js"></script>
+  <script src="/jquery-ui.js"></script> -->
+  <script src="/bootstrap.min.js"></script>
+  <script src="/jquery.min.js"></script>
   <script src="autocomplete.js"></script>
 </head>
 
@@ -419,7 +421,8 @@
     </div>
     <form>
       <div class="my-4 text-center">
-        <button id="sairConfig" type="button" class="btn btn-lg btn-primary" data-toggle="modal" data-target="#enviarConfig">
+        <button id="sairConfig" type="button" class="btn btn-lg btn-primary" data-toggle="modal"
+          data-target="#enviarConfig">
           Sair modo de configuração
         </button>
       </div>
@@ -764,8 +767,16 @@
     function closeModal() {
       location.reload();
     }
-  
-        $(function () {
+
+    document.getElementById('sairConfig').addEventListener('click', function () {
+      const viewportMeta = document.querySelector('meta[name="viewport"]');
+      let content = viewportMeta.getAttribute('content');
+      let initialScale = parseFloat(content.match(/initial-scale=([0-9.]+)/)[1]);
+      initialScale *= 0.9; // Adjust the scale factor to zoom out more or less
+      viewportMeta.setAttribute('content', `width=device-width, initial-scale=${initialScale}`);
+    });
+
+    $(function () {
       // Function to get stored data for a specific input
       function getStoredData(inputId) {
         return JSON.parse(localStorage.getItem(inputId)) || [];
