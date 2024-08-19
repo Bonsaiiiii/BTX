@@ -8,20 +8,13 @@
 #include "NTRIPClient.h"
 #include "Freenove_WS2812_Lib_for_ESP32.h"
 #include "HardwareSerial.h"
+#include "base64.hpp"
 
 #define LEDS_COUNT  2
 
-#define RADIO_data  "/radio_conf.json"
-#define NTRIP_data  "/ntrip_conf.json"
-#define BOARD_data  "/board_conf.json"
-#define LOC_data    "/loc.json"
-#define APP_data    "/ntrip_app.json"
+#define BTX_data  "/btx_conf.json"
 
-#define size_radio  1024
-#define size_ntrip  512
-#define size_board  256
-#define size_loc    128
-#define size_app    64
+#define size_btx  2048
 
 #define CF3     4
 #define CF2     5
@@ -46,37 +39,71 @@
 #define EXTOFF  36
 #define EXTEN   35
 
-String Latitude, Longitude, Precisao, Altitude, Tempoutc, ChLoc;
-String MAC, MODEL;
+
+uint16_t port = 2101;
+
+const char* res_rev1 = "ICY 200 OK";
+const char* res_rev2 = "HTTP/1.1 200 OK\r\n";
+const char* res_rev1_ST = "SOURCETABLE 200 OK";
+
+bool FLAG_Stable_ap;
+bool FLAG_MP_ap;
+bool flag_send_ap;
+bool flag_ok_ap = false;
+unsigned long currentMillis_ap;
+unsigned long atualMillis_ap;
+unsigned long wait_ap;
+unsigned int readcount_ap;
+
+char ch_ap[512];
+char cliente_data_ap[512];
+
+//variaveis BTX
 
 int teste;
+String MAC;
 
-String WIFI, WPAS, HOST, PORT, MNTP, USER, UPAS;
-String CHTX, CHRX, SBUD, TPWR, TPRT;
+//var channels
 String CTX0, CTX1, CTX2, CTX3, CTX4, CTX5, CTX6, CTX7, CTX8, CTX9;
 String CRX0, CRX1, CRX2, CRX3, CRX4, CRX5, CRX6, CRX7, CRX8, CRX9;
-String MODE, FLOW, FUPP;
-String INPT, SERL, SREV, MODC, FIRC, READ, CONF;
+
+char cCTX0[10]; char cCTX1[10]; char cCTX2[10]; char cCTX3[10]; char cCTX4[10]; char cCTX5[10]; char cCTX6[10]; char cCTX7[10]; char cCTX8[10]; char cCTX9[10];
+char cCRX0[10]; char cCRX1[10]; char cCRX2[10]; char cCRX3[10]; char cCRX4[10]; char cCRX5[10]; char cCRX6[10]; char cCRX7[10]; char cCRX8[10]; char cCRX9[10];
+
+//var serial
+String CHTX, CHRX, SBUD, TPWR, TPRT;
+
+char cCHTX[2]; char cCHRX[2]; char cSBUD[7]; char cTPWR[2]; char cTPRT[10];
+
+//var cliente
+String CHTXC, TPWRC, SBUDC, TPRTC, WIFI, WPAS, HOST, PORT, MNTP, USER, UPAS;
+String Latitude, Longitude, Precisao, Altitude, Tempoutc, ChLoc;
+
+char cCHTXC[2]; char cTPWRC[2]; char cSBUDC[7]; char cTPRTC[10]; char cWIFI[32]; char cWPAS[64]; char cHOST[16]; char cPORT[6]; char cMNTP[81]; char cUSER[31]; char cUPAS[31]; 
+char cLatitude[12]; char cLongitude[12]; char cPrecisao[20]; char cAltitude[20]; char cTempoutc[7], cChLoc[2];
+
+//var caster
+String SBAUDL, WIFIL, WPASL, HOSTL, PORTL, MNTPL, USERL, UPASL;
+
+char cSBAUDL[7]; char cWIFIL[32]; char cWPASL[64]; char cHOSTL[16]; char cPORTL[6]; char cMNTPL[81]; char cUSERL[31]; char cUPASL[31];
+
+//var adv
+String INPT, FLOW, FUPP, MODE, READ, CONF;  
+
+char cINPT[7]; char cFLOW[4]; char cFUPP[4]; char cMODE[7]; char cREAD[4]; char cCONF[2]; 
+
+//var info
+String SERL, SREV, MODC, FIRC;
+
+char cSERL[13]; char cSREV[11]; char cMODC[10]; char cFIRC[10];
 
 String commands[11]={"TX","RX","PWR","SBAUD","PRT","SREV","SER","FLOW","FUPP","MODE"};
 String TXR, RXR;
 
-char cWIFI[32]; char cWPAS[64]; char cHOST[16]; char cPORT[6]; char cMNTP[81]; char cUSER[31]; char cUPAS[31]; 
-char cCHTX[2]; char cCHRX[2]; char cSBUD[7]; char cTPWR[2]; char cTPRT[10];
-char cCTX0[10]; char cCTX1[10]; char cCTX2[10]; char cCTX3[10]; char cCTX4[10]; char cCTX5[10]; char cCTX6[10]; char cCTX7[10]; char cCTX8[10]; char cCTX9[10];
-char cCRX0[10]; char cCRX1[10]; char cCRX2[10]; char cCRX3[10]; char cCRX4[10]; char cCRX5[10]; char cCRX6[10]; char cCRX7[10]; char cCRX8[10]; char cCRX9[10];
-char cMODE[7]; char cFLOW[4]; char cFUPP[4];
-char cINPT[7]; char cSERL[13]; char cSREV[11]; char cMODC[10]; char cFIRC[10]; char cREAD[4]; char cCONF[2];
-char cLatitude[12]; char cLongitude[12]; char cPrecisao[20]; char cAltitude[20]; char cTempoutc[7], cChLoc[2];
-char cMAC[20]; char cMODEL[10];
-
 int baudrates[5]={9600,19200,38400,57600,115200};
 int input;
-int conf_radio = 0;
-int conf_board = 0;
-int conf_ntrip = 0;
+int conf_btx = 0;
 int conf_exit = 0;
-int saveLoc = 0;
 
 unsigned long tempo;
 char ch0[5000];
@@ -97,6 +124,87 @@ Freenove_ESP32_WS2812 leds = Freenove_ESP32_WS2812(LEDS_COUNT, LEDIN, 0);
 // Create AsyncWebServer object on port 80
 DNSServer dnsServer;
 AsyncWebServer server(80);
+
+WiFiServer wifiServer(port);
+WiFiClient client = wifiServer.available();
+
+
+//BDR FUNÇÔES////////////////////////////////////
+
+String scrtbl(const char* mountpoint, String ip, uint16_t port){
+  String body = "STR;";
+  body = body + mountpoint + String(";;;;0;;HUGEN;BRA;0.00;0.00;0;0;sNTRIP;none;N;N;0;none;\r\n"
+            "NET;HUGEN;;N;N;None;") + ip + String(":") + port + String(";None;;\r\n"
+            "ENDSOURCETABLE\r\n");
+  uint16_t tamanho = body.length();
+  String header = "Server:"; 
+  header = header + String(" Hugenplus ntrip simple ntrip caster/R1.0\r\n"
+            //"Date: ") + ntp.getFormattedDate() + String("\r\n"
+            "Content-Type: text/plain\r\n"
+            "Content-Length: ") + String(tamanho) + String("\r\n");
+  return header + String("\r\n") + body + String("\r\n");
+}
+
+int check_aut(String data, String user, String pwr){
+  char base64[50];
+  unsigned char string[50];
+  Serial.print("user: ");Serial.println(user);
+  Serial.print("pwr: ");Serial.println(pwr);
+  int posicao = data.indexOf(": Basic");
+  posicao = posicao + 8;
+  String usuario_encoded = data.substring(posicao);
+  usuario_encoded.toCharArray(base64,50);
+  unsigned int string_length = decode_base64((unsigned char *)base64, string);
+  string[string_length] = '\0';
+  String usuario_decoded = String((char *)string);
+  int separador = usuario_decoded.indexOf(":");
+  String cliente_usuario = usuario_decoded.substring(0,separador);
+  separador ++;
+  String cliente_senha = usuario_decoded.substring(separador);
+  Serial.print("cliente_usuario: ");Serial.println(cliente_usuario);
+  Serial.print("cliente_senha: ");Serial.println(cliente_senha);
+  if(cliente_usuario == user && cliente_senha == pwr){
+    return 8;// senha correta
+  }else{
+    return 9;// senha incorreta
+  }
+}
+
+int check_ver(String data){
+  int posicao_inicial = data.indexOf("HTTP");
+  int posicao_final = data.indexOf("\r\n");
+  if (posicao_inicial < 0){
+    return 4; //ERRO1 
+  }
+  String versao_http = data.substring(posicao_inicial, posicao_final);
+  Serial.println(versao_http);
+  if(versao_http == "HTTP/1.0"){
+    return 1; //REV1
+  }
+  if(versao_http == "HTTP/1.1"){
+    return 2; //REV2
+  }
+}
+
+int check_mountpoint(String data, String mountpoint){
+  int posicao_inicial = data.indexOf("/");
+  int posicao_final = data.indexOf("HTTP");
+  posicao_final--;
+  String cliente_mountpoint = data.substring(posicao_inicial,posicao_final);
+  String mp = "/";
+  mp = mp + mountpoint;
+  Serial.println(cliente_mountpoint);
+  Serial.println(mp);
+  if(cliente_mountpoint == mp){
+    return 5; //igual
+  }
+  if(cliente_mountpoint == "/SOURCETABLE.TXT " || cliente_mountpoint == "/"){
+    return 6; //solicita
+  }
+  return 7; //ERRO2
+} 
+
+//BTX FUNÇÔES/////////////////////////////////////// 
 
 bool usbpd(int volt){
   switch(volt){
@@ -686,12 +794,8 @@ String searchbaud(){
       return String("ERRO3");
     }
     delay(20);
-    //Serial.print("baudrate: ");
-    //Serial.println(baudrates[i]);
     Serial1.begin(baudrates[i], SERIAL_8N1, TXDT, RXDT);
     delay(50);
-    //Serial.print("resposta do radio: ");
-    //Serial.println(du2005read("SER"));
     du2005read("SER");
     if(du2005read("SER")!="ERRO1"){
       return String(baudrates[i]);
@@ -700,95 +804,158 @@ String searchbaud(){
 }
 
 int programall(){
-  for(int e=0;e<=10;e++){
-    switch(e){
-      case 0: 
-        if(CHTX=="0"){
-          du2005conf(commands[e], CTX0);
-        }
-        if(CHTX=="1"){
-          du2005conf(commands[e], CTX1);
-        }
-        if(CHTX=="2"){
-          du2005conf(commands[e], CTX2);
-        }
-        if(CHTX=="3"){
-          du2005conf(commands[e], CTX3);
-        }
-        if(CHTX=="4"){
-          du2005conf(commands[e], CTX4);
-        }
-        if(CHTX=="5"){
-          du2005conf(commands[e], CTX5);
-        }
-        if(CHTX=="6"){
-          du2005conf(commands[e], CTX6);
-        }
-        if(CHTX=="7"){
-          du2005conf(commands[e], CTX7);
-        }
-        if(CHTX=="8"){
-          du2005conf(commands[e], CTX8);
-        }
-        if(CHTX=="9"){
-          du2005conf(commands[e], CTX9);
-        }
-        break;
-      case 1: 
-        if(CHRX=="0"){
-          du2005conf(commands[e], CRX0);
-        }
-        if(CHRX=="1"){
-          du2005conf(commands[e], CRX1);
-        }
-        if(CHRX=="2"){
-          du2005conf(commands[e], CRX2);
-        }
-        if(CHRX=="3"){
-          du2005conf(commands[e], CRX3);
-        }
-        if(CHRX=="4"){
-          du2005conf(commands[e], CRX4);
-        }
-        if(CHRX=="5"){
-          du2005conf(commands[e], CRX5);
-        }
-        if(CHRX=="6"){
-          du2005conf(commands[e], CRX6);
-        }
-        if(CHRX=="7"){
-          du2005conf(commands[e], CRX7);
-        }
-        if(CHRX=="8"){
-          du2005conf(commands[e], CRX8);
-        }
-        if(CHRX=="9"){
-          du2005conf(commands[e], CRX9);
-        }
-        break;
-      case 2: 
-        du2005conf(commands[e],TPWR);
-        break;
-      case 3: 
-        du2005conf(commands[e],SBUD);
-        break;
-      case 4: 
-        du2005conf(commands[e],TPRT);
-        break;
-      case 5:
-        break;
-      case 6:
-        break;
-      case 7:
-        du2005conf(commands[e],FLOW);
-        break;
-      case 8:
-        du2005conf(commands[e],FUPP);
-        break;
-      case 9:
-        du2005conf(commands[e],MODE);
-        break;
-    } 
+  if(INPT="SERIAL"){
+    for(int e=0;e<=10;e++){
+      switch(e){
+        case 0: 
+          if(CHTX=="0"){
+            du2005conf(commands[e], CTX0);
+          }
+          if(CHTX=="1"){
+            du2005conf(commands[e], CTX1);
+          }
+          if(CHTX=="2"){
+            du2005conf(commands[e], CTX2);
+          }
+          if(CHTX=="3"){
+            du2005conf(commands[e], CTX3);
+          }
+          if(CHTX=="4"){
+            du2005conf(commands[e], CTX4);
+          }
+          if(CHTX=="5"){
+            du2005conf(commands[e], CTX5);
+          }
+          if(CHTX=="6"){
+            du2005conf(commands[e], CTX6);
+          }
+          if(CHTX=="7"){
+            du2005conf(commands[e], CTX7);
+          }
+          if(CHTX=="8"){
+            du2005conf(commands[e], CTX8);
+          }
+          if(CHTX=="9"){
+            du2005conf(commands[e], CTX9);
+          }
+          break;
+        case 1: 
+          if(CHRX=="0"){
+            du2005conf(commands[e], CRX0);
+          }
+          if(CHRX=="1"){
+            du2005conf(commands[e], CRX1);
+          }
+          if(CHRX=="2"){
+            du2005conf(commands[e], CRX2);
+          }
+          if(CHRX=="3"){
+            du2005conf(commands[e], CRX3);
+          }
+          if(CHRX=="4"){
+            du2005conf(commands[e], CRX4);
+          }
+          if(CHRX=="5"){
+            du2005conf(commands[e], CRX5);
+          }
+          if(CHRX=="6"){
+            du2005conf(commands[e], CRX6);
+          }
+          if(CHRX=="7"){
+            du2005conf(commands[e], CRX7);
+          }
+          if(CHRX=="8"){
+            du2005conf(commands[e], CRX8);
+          }
+          if(CHRX=="9"){
+            du2005conf(commands[e], CRX9);
+          }
+          break;
+        case 2: 
+          du2005conf(commands[e],TPWR);
+          break;
+        case 3: 
+          du2005conf(commands[e],SBUD);
+          break;
+        case 4: 
+          du2005conf(commands[e],TPRT);
+          break;
+        case 5:
+          break;
+        case 6:
+          break;
+        case 7:
+          du2005conf(commands[e],FLOW);
+          break;
+        case 8:
+          du2005conf(commands[e],FUPP);
+          break;
+        case 9:
+          du2005conf(commands[e],MODE);
+          break;
+      } 
+    }
+  }else if(INPT="CLIENT"){
+    for(int e=0;e<=10;e++){
+      switch(e){
+        case 0: 
+          if(CHTX=="0"){
+            du2005conf(commands[e], CTX0);
+          }
+          if(CHTX=="1"){
+            du2005conf(commands[e], CTX1);
+          }
+          if(CHTX=="2"){
+            du2005conf(commands[e], CTX2);
+          }
+          if(CHTX=="3"){
+            du2005conf(commands[e], CTX3);
+          }
+          if(CHTX=="4"){
+            du2005conf(commands[e], CTX4);
+          }
+          if(CHTX=="5"){
+            du2005conf(commands[e], CTX5);
+          }
+          if(CHTX=="6"){
+            du2005conf(commands[e], CTX6);
+          }
+          if(CHTX=="7"){
+            du2005conf(commands[e], CTX7);
+          }
+          if(CHTX=="8"){
+            du2005conf(commands[e], CTX8);
+          }
+          if(CHTX=="9"){
+            du2005conf(commands[e], CTX9);
+          }
+          break;
+        case 1: 
+          break;
+        case 2: 
+          du2005conf(commands[e],TPWR);
+          break;
+        case 3: 
+          du2005conf(commands[e],SBUD);
+          break;
+        case 4: 
+          du2005conf(commands[e],TPRT);
+          break;
+        case 5:
+          break;
+        case 6:
+          break;
+        case 7:
+          du2005conf(commands[e],FLOW);
+          break;
+        case 8:
+          du2005conf(commands[e],FUPP);
+          break;
+        case 9:
+          du2005conf(commands[e],MODE);
+          break;
+      } 
+    }
   }
   return 1;  
 }
@@ -807,21 +974,25 @@ int readall(){
             case 0: 
               if(CTX0==TXR){
                 CHTX="0";
+                CHTXC="0";
               }
               break;
             case 1: 
               if(CTX1==TXR){
                 CHTX="1";
+                CHTXC="1";
               }
               break;
             case 2: 
               if(CTX2==TXR){
                 CHTX="2";
+                CHTXC="2";
               }
               break;
             case 3: 
               if(CTX3==TXR){
                 CHTX="3";
+                CHTXC="3";
               }
               break;
             case 4: 
@@ -832,35 +1003,42 @@ int readall(){
             case 5: 
               if(CTX5==TXR){
                 CHTX="5";
+                CHTXC="4";
               }
               break;
             case 6: 
               if(CTX6==TXR){
                 CHTX="6";
+                CHTXC="6";
               }
               break;
             case 7: 
               if(CTX7==TXR){
                 CHTX="7";
+                CHTXC="7";
               }
               break;
             case 8: 
               if(CTX8==TXR){
                 CHTX="8";
+                CHTXC="8";
               }
               break;
             case 9: 
               if(CTX9==TXR){
                 CHTX="9";
+                CHTXC="9";
               }
               break;
             case 10:
               if(CTX0==""){
                 CTX0==TXR;
                 CHTX="0";
+                CHTXC="0";
               }else{
                 du2005conf("TX",CTX0);
                 CHTX="0";
+                CHTXC="0";
               }
               break;
           }
@@ -937,18 +1115,21 @@ int readall(){
         break;
       case 2: 
         TPWR = du2005read(commands[e]);
+        TPWR = TPWRC;
         if(TPWR=="ERRO1"){
           return 0;
         }
         break;
       case 3: 
         SBUD = du2005read(commands[e]);
+        SBUD = SBUDC;
         if(SBUD=="ERRO1"){
           return 0;
         }
         break;
       case 4: 
         TPRT = du2005read(commands[e]);
+        TPRT = TPRTC;
         if(TPRT=="ERRO1"){
           return 0;
         }
@@ -1052,113 +1233,89 @@ String processor(const String& var){
 bool loaddata(String filename){
   if (SPIFFS.begin(false) || SPIFFS.begin(true)){
     if (SPIFFS.exists(filename)){
-      if(filename=="/radio_conf.json"){
+      if(filename=="/btx_conf.json"){
         File configFile = SPIFFS.open(filename, "r");
           if (configFile){
-            StaticJsonDocument<size_radio> json;
+            StaticJsonDocument<size_btx> json;
             DeserializationError error = deserializeJson(json, configFile);
             if (!error){
-              CHTX = strcpy(cCHTX, json["TX"]);
-              CTX0 = strcpy(cCTX0, json["TX0"]);
-              CTX1 = strcpy(cCTX1, json["TX1"]);
-              CTX2 = strcpy(cCTX2, json["TX2"]);
-              CTX3 = strcpy(cCTX3, json["TX3"]);
-              CTX4 = strcpy(cCTX4, json["TX4"]);
-              CTX5 = strcpy(cCTX5, json["TX5"]);
-              CTX6 = strcpy(cCTX6, json["TX6"]);
-              CTX7 = strcpy(cCTX7, json["TX7"]);
-              CTX8 = strcpy(cCTX8, json["TX8"]);
-              CTX9 = strcpy(cCTX9, json["TX9"]);
-              CHRX = strcpy(cCHRX, json["RX"]);
-              CRX0 = strcpy(cCRX0, json["RX0"]);
-              CRX1 = strcpy(cCRX1, json["RX1"]);
-              CRX2 = strcpy(cCRX2, json["RX2"]);
-              CRX3 = strcpy(cCRX3, json["RX3"]);
-              CRX4 = strcpy(cCRX4, json["RX4"]);
-              CRX5 = strcpy(cCRX5, json["RX5"]);
-              CRX6 = strcpy(cCRX6, json["RX6"]);
-              CRX7 = strcpy(cCRX7, json["RX7"]);
-              CRX8 = strcpy(cCRX8, json["RX8"]);
-              CRX9 = strcpy(cCRX9, json["RX9"]);
-              TPWR = strcpy(cTPWR, json["PWR"]);
-              SBUD = strcpy(cSBUD, json["SBAUD"]);
-              TPRT = strcpy(cTPRT, json["PRT"]);
-              FLOW = strcpy(cFLOW, json["FLOW"]);
-              FUPP = strcpy(cFUPP, json["FUPP"]);
-              MODE = strcpy(cMODE, json["MODE"]);
+              //canais de transmissão
+              JsonObject tx = json["tx_ch"][0];
+              CTX0 = strcpy(cCTX0, tx["TX0"]);
+              CTX1 = strcpy(cCTX1, tx["TX1"]);
+              CTX2 = strcpy(cCTX2, tx["TX2"]);
+              CTX3 = strcpy(cCTX3, tx["TX3"]);
+              CTX4 = strcpy(cCTX4, tx["TX4"]);
+              CTX5 = strcpy(cCTX5, tx["TX5"]);
+              CTX6 = strcpy(cCTX6, tx["TX6"]);
+              CTX7 = strcpy(cCTX7, tx["TX7"]);
+              CTX8 = strcpy(cCTX8, tx["TX8"]);
+              CTX9 = strcpy(cCTX9, tx["TX9"]);
+              //canais de recepção
+              JsonObject rx = json["rx_ch"][0];
+              CRX0 = strcpy(cCRX0, rx["RX0"]);
+              CRX1 = strcpy(cCRX1, rx["RX1"]);
+              CRX2 = strcpy(cCRX2, rx["RX2"]);
+              CRX3 = strcpy(cCRX3, rx["RX3"]);
+              CRX4 = strcpy(cCRX4, rx["RX4"]);
+              CRX5 = strcpy(cCRX5, rx["RX5"]);
+              CRX6 = strcpy(cCRX6, rx["RX6"]);
+              CRX7 = strcpy(cCRX7, rx["RX7"]);
+              CRX8 = strcpy(cCRX8, rx["RX8"]);
+              CRX9 = strcpy(cCRX9, rx["RX9"]);
+              //modo serial
+              JsonObject serial = json["serial"][0];
+              CHTX = strcpy(cCHTX, serial["TX"]);
+              CHRX = strcpy(cCHRX, serial["RX"]);
+              TPWR = strcpy(cTPWR, serial["PWR"]);
+              SBUD = strcpy(cSBUD, serial["SBAUD"]);
+              TPRT = strcpy(cTPRT, serial["PRT"]);
+              //modo cliente
+              JsonObject cliente = json["client"][0];
+              CHTXC = strcpy(cCHTXC, cliente["TXC"]);
+              TPWRC = strcpy(cTPWRC, cliente["PWRC"]);
+              SBUDC = strcpy(cSBUDC, cliente["SBAUDC"]);
+              TPRTC = strcpy(cTPRTC, cliente["PRTC"]);
+              WIFI = strcpy(cWIFI, cliente["WIFI"]);
+              WPAS = strcpy(cWPAS, cliente["WPAS"]);
+              HOST = strcpy(cHOST, cliente["HOST"]);
+              PORT = strcpy(cPORT, cliente["PORT"]);
+              MNTP = strcpy(cMNTP, cliente["MNTP"]);
+              USER = strcpy(cUSER, cliente["USER"]);
+              UPAS = strcpy(cUPAS, cliente["UPAS"]);
+              ChLoc = strcpy(cChLoc, cliente["chLoc"]);
+              Latitude = strcpy(cLatitude, cliente["latitude"]);
+              Longitude = strcpy(cLongitude, cliente["longitude"]);
+              Precisao = strcpy(cPrecisao, cliente["altitude"]);
+              Altitude = strcpy(cAltitude, cliente["precisao"]);
+              Tempoutc = strcpy(cTempoutc, cliente["tempoutc"]);
+              //modo caster local
+              JsonObject local = json["local"][0];
+              SBAUDL = strcpy(cSBAUDL, local["SBAUDL"]);
+              WIFIL = strcpy(cWIFIL, local["WIFIL"]);
+              WPASL = strcpy(cWPASL, local["WPASL"]);
+              HOSTL = strcpy(cHOSTL, local["HOSTL"]);
+              PORTL = strcpy(cPORTL, local["PORTL"]);
+              MNTPL = strcpy(cMNTPL, local["MNTPL"]);
+              USERL = strcpy(cUSERL, local["USERL"]);
+              UPASL = strcpy(cUPASL, local["UPASL"]);
+              //adv
+              JsonObject adv = json["adv"][0];
+              INPT = strcpy(cINPT, adv["INPT"]);
+              FLOW = strcpy(cFLOW, adv["FLOW"]);
+              FUPP = strcpy(cFUPP, adv["FUPP"]);
+              MODE = strcpy(cMODE, adv["MODE"]);
+              READ = strcpy(cREAD, adv["READ"]);
+              CONF = strcpy(cCONF, adv["CONF"]);
+              //info
+              JsonObject info = json["info"][0];
+              SERL = strcpy(cSERL, info["SERL"]);
+              SREV = strcpy(cSREV, info["SREV"]);
+              MODC = strcpy(cMODC, info["MODC"]);
+              FIRC = strcpy(cFIRC, info["FIRC"]);
               return true;
           }else{
-              Serial.println("Failed to load radio conf");
-          }
-        }
-      }
-      if(filename=="/ntrip_conf.json"){
-        File configFile = SPIFFS.open(filename, "r");
-        if (configFile){
-          StaticJsonDocument<size_ntrip> json;
-          DeserializationError error = deserializeJson(json, configFile);
-          if (!error){
-            WIFI = strcpy(cWIFI, json["WIFI"]);
-            WPAS = strcpy(cWPAS, json["WPAS"]);
-            HOST = strcpy(cHOST, json["HOST"]);
-            PORT = strcpy(cPORT, json["PORT"]);
-            MNTP = strcpy(cMNTP, json["MNTP"]);
-            USER = strcpy(cUSER, json["USER"]);
-            UPAS = strcpy(cUPAS, json["UPAS"]);
-            return true;
-          }else{
-              Serial.println("Failed to load ntrip conf");
-          }
-        }
-      }
-      if(filename=="/board_conf.json"){
-        File configFile = SPIFFS.open(filename, "r");
-        if (configFile){
-          StaticJsonDocument<size_board> json;
-          DeserializationError error = deserializeJson(json, configFile);
-          if (!error){
-            INPT = strcpy(cINPT, json["INPT"]);
-            SERL = strcpy(cSERL, json["SERL"]);
-            SREV = strcpy(cSREV, json["SREV"]);
-            MODC = strcpy(cMODC, json["MODC"]);
-            FIRC = strcpy(cFIRC, json["FIRC"]);
-            READ = strcpy(cREAD, json["READ"]);
-            CONF = strcpy(cCONF, json["CONF"]);
-            return true;
-          }else{
-              Serial.println("Failed to load board conf");
-          }
-        }
-      }
-      if(filename=="/loc.json"){
-        File configFile = SPIFFS.open(filename, "r");
-        if (configFile){
-          StaticJsonDocument<size_loc> json;
-          DeserializationError error = deserializeJson(json, configFile);
-          if (!error){
-            Latitude = strcpy(cLatitude, json["latitude"]);
-            Longitude = strcpy(cLongitude, json["longitude"]);
-            Precisao = strcpy(cPrecisao, json["altitude"]);
-            Altitude = strcpy(cAltitude, json["precisao"]);
-            Tempoutc = strcpy(cTempoutc, json["tempoutc"]);
-            ChLoc = strcpy(cChLoc, json["chLoc"]);
-            return true;
-          }else{
-              Serial.println("Failed to load board conf");
-          }
-        }
-      }
-      if(filename=="/ntrip_app.json"){
-        File configFile = SPIFFS.open(filename, "r");
-        if (configFile){
-          StaticJsonDocument<size_app> json;
-          DeserializationError error = deserializeJson(json, configFile);
-          if (!error){
-            MAC = strcpy(cMAC, json["MAC"]);
-            MODEL = strcpy(cMODEL, json["MODEL"]);
-            return true;
-          }else{
-              Serial.println("Failed to load board conf");
+              Serial.println("Failed to load btx_conf.json");
           }
         }
       }
@@ -1170,105 +1327,78 @@ bool loaddata(String filename){
 }
 
 void saveConfigFile(String filename){
-  if(filename=="/radio_conf.json"){
-    StaticJsonDocument<size_radio> json;
-    json["TX"]    = CHTX.c_str();
-    json["TX0"]   = CTX0.c_str();
-    json["TX1"]   = CTX1.c_str();
-    json["TX2"]   = CTX2.c_str();
-    json["TX3"]   = CTX3.c_str();
-    json["TX4"]   = CTX4.c_str();
-    json["TX5"]   = CTX5.c_str();
-    json["TX6"]   = CTX6.c_str();
-    json["TX7"]   = CTX7.c_str();
-    json["TX8"]   = CTX8.c_str();
-    json["TX9"]   = CTX9.c_str();
-    json["RX"]    = CHRX.c_str();
-    json["RX0"]   = CRX0.c_str();
-    json["RX1"]   = CRX1.c_str();
-    json["RX2"]   = CRX2.c_str();
-    json["RX3"]   = CRX3.c_str();
-    json["RX4"]   = CRX4.c_str();
-    json["RX5"]   = CRX5.c_str();
-    json["RX6"]   = CRX6.c_str();
-    json["RX7"]   = CRX7.c_str();
-    json["RX8"]   = CRX8.c_str();
-    json["RX9"]   = CRX9.c_str();
-    json["PWR"]   = TPWR.c_str();
-    json["SBAUD"] = SBUD.c_str();
-    json["PRT"]   = TPRT.c_str();
-    json["FLOW"]  = FLOW.c_str();
-    json["FUPP"]  = FUPP.c_str();
-    json["MODE"]  = MODE.c_str();
+  if(filename=="/btx_conf.json"){
+    StaticJsonDocument<size_btx> json;
+    JsonObject tx_ch = json["tx_ch"].createNestedObject();
+    tx_ch["TX0"] = CTX0.c_str();
+    tx_ch["TX1"] = CTX1.c_str();
+    tx_ch["TX2"] = CTX2.c_str();
+    tx_ch["TX3"] = CTX3.c_str();
+    tx_ch["TX4"] = CTX4.c_str();
+    tx_ch["TX5"] = CTX5.c_str();
+    tx_ch["TX6"] = CTX6.c_str();
+    tx_ch["TX7"] = CTX7.c_str();
+    tx_ch["TX8"] = CTX8.c_str();
+    tx_ch["TX9"] = CTX9.c_str();
+    JsonObject rx_ch = json["rx_ch"].createNestedObject();
+    rx_ch["RX0"] = CRX0.c_str();
+    rx_ch["RX1"] = CRX1.c_str();
+    rx_ch["RX2"] = CRX2.c_str();
+    rx_ch["RX3"] = CRX3.c_str();
+    rx_ch["RX4"] = CRX4.c_str();
+    rx_ch["RX5"] = CRX5.c_str();
+    rx_ch["RX6"] = CRX6.c_str();
+    rx_ch["RX7"] = CRX7.c_str();
+    rx_ch["RX8"] = CRX8.c_str();
+    rx_ch["RX9"] = CRX9.c_str();
+    JsonObject serial = json["serial"].createNestedObject();
+    serial["TX"] = CHTX.c_str();
+    serial["RX"] = CHRX.c_str();
+    serial["PWR"] = TPWR.c_str();
+    serial["SBAUD"] = SBUD.c_str();
+    serial["PRT"] = TPRT.c_str();
+    JsonObject cliente = json["client"].createNestedObject();
+    cliente["TXC"] = CHTXC.c_str();
+    cliente["PWRC"] = TPWRC.c_str();
+    cliente["SBAUDC"] = SBUDC.c_str();
+    cliente["PRTC"] = TPRTC.c_str();
+    cliente["WIFI"] = WIFI.c_str();
+    cliente["WPAS"] = WPAS.c_str();
+    cliente["HOST"] = HOST.c_str();
+    cliente["PORT"] = PORT.c_str();
+    cliente["MNTP"] = MNTP.c_str();
+    cliente["USER"] = USER.c_str();
+    cliente["UPAS"] = UPAS.c_str();
+    cliente["chLoc"] = ChLoc.c_str();
+    cliente["latitude"] = Latitude.c_str();
+    cliente["longitude"] = Longitude.c_str();
+    cliente["altitude"] = Altitude.c_str();
+    cliente["precisao"] = Precisao.c_str();
+    cliente["tempoutc"] = Tempoutc.c_str();
+    JsonObject local = json["local"].createNestedObject();
+    local["SBAUDL"] = SBAUDL.c_str();
+    local["WIFIL"] = WIFIL.c_str();
+    local["WPASL"] = WPASL.c_str();
+    local["HOSTL"] = HOSTL.c_str();
+    local["PORTL"] = PORTL.c_str();
+    local["MNTPL"] = MNTPL.c_str();
+    local["USERL"] = USERL.c_str();
+    local["UPASL"] = UPASL.c_str();
+    JsonObject adv = json["adv"].createNestedObject();
+    adv["INPT"] = INPT.c_str();
+    adv["FLOW"] = FLOW.c_str();
+    adv["FUPP"] = FUPP.c_str();
+    adv["MODE"] = MODE.c_str();
+    adv["READ"] = READ.c_str();
+    adv["CONF"] = CONF.c_str();
+    JsonObject info = json["info"].createNestedObject();
+    info["SERL"] = SERL.c_str();
+    info["SREV"] = SREV.c_str();
+    info["MODC"] = MODC.c_str();
+    info["FIRC"] = FIRC.c_str();
     File configFile = SPIFFS.open(filename, "w");
     if (!configFile){
-      Serial.println("failed to open radio config file for writing");
-    }
-    if (serializeJson(json, configFile) == 0){
-      Serial.println(F("Failed to write to file"));
-    }
-    configFile.close();
-  }
-  if(filename=="/ntrip_conf.json"){
-    StaticJsonDocument<size_ntrip> json;
-    json["WIFI"]  = WIFI.c_str();
-    json["WPAS"]  = WPAS.c_str();
-    json["HOST"]  = HOST.c_str();
-    json["PORT"]  = PORT.c_str();
-    json["MNTP"]  = MNTP.c_str();
-    json["USER"]  = USER.c_str();
-    json["UPAS"]  = UPAS.c_str();
-    File configFile = SPIFFS.open(filename, "w");
-    if (!configFile){
-      Serial.println("failed to open ntrip config file for writing");
-    }
-    if (serializeJson(json, configFile) == 0){
-      Serial.println(F("Failed to write to file"));
-    }
-    configFile.close();
-  }
-  if(filename=="/board_conf.json"){
-    StaticJsonDocument<size_board> json;
-    json["INPT"]  = INPT.c_str();
-    json["SERL"]  = SERL.c_str();
-    json["SREV"]  = SREV.c_str();
-    json["MODC"]  = MODC.c_str();
-    json["FIRC"]  = FIRC.c_str();
-    json["READ"]  = READ.c_str();
-    json["CONF"]  = CONF.c_str();
-    File configFile = SPIFFS.open(filename, "w");
-    if (!configFile){
-      Serial.println("failed to open config file for writing");
-    }
-    if (serializeJson(json, configFile) == 0){
-      Serial.println(F("Failed to write to file"));
-    }
-    configFile.close();
-  }
-  if(filename=="/loc.json"){
-    StaticJsonDocument<size_loc> json;
-    json["latitude"]  = Latitude.c_str();
-    json["longitude"]  = Longitude.c_str();
-    json["altitude"]  = Precisao.c_str();
-    json["precisao"]  = Altitude.c_str();
-    json["tempoutc"]  = Tempoutc.c_str();
-    json["chLoc"] = ChLoc.c_str();
-    File configFile = SPIFFS.open(filename, "w");
-    if (!configFile){
-      Serial.println("failed to open config file for writing");
-    }
-    if (serializeJson(json, configFile) == 0){
-      Serial.println(F("Failed to write to file"));
-    }
-    configFile.close();
-  }
-    if(filename=="/ntrip_app.json"){
-    StaticJsonDocument<size_app> json;
-    json["MAC"]  = MAC.c_str();
-    json["MODEL"]  = MODEL.c_str();
-    File configFile = SPIFFS.open(filename, "w");
-    if (!configFile){
-      Serial.println("failed to open config file for writing");
+      Serial.println("failed to open btx_conf.json file for writing");
     }
     if (serializeJson(json, configFile) == 0){
       Serial.println(F("Failed to write to file"));
@@ -1396,11 +1526,7 @@ void setup(){
       delay(1000);
     }
   }
-  loaddata(RADIO_data);
-  loaddata(NTRIP_data);
-  loaddata(BOARD_data);
-  loaddata(LOC_data);
-  loaddata(APP_data);
+  loaddata(BTX_data);
   Serial.println("inicia radio");
   init1 = du2005begin();
   if(init1==0){
@@ -1437,86 +1563,102 @@ void setup(){
     
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
       request->send(SPIFFS, "/index.html", String(), false, processor);
-      conf_radio=0;
-      conf_ntrip=0;
-      conf_board=0;
-      conf_exit=0;
+      conf_btx = 0;
     });
     server.on("/generate_204", HTTP_GET, [](AsyncWebServerRequest *request){
       request->send(204);
     });
-    //server.on("/bootstrap.min.css", HTTP_GET, [](AsyncWebServerRequest *request){
-      //request->send(SPIFFS, "/bootstrap.min.css", "text/css");
-    //});
-    //server.on("/jquery.min.js", HTTP_GET, [](AsyncWebServerRequest *request){
-      //request->send(SPIFFS, "/jquery.min.js", "text/javascript");
-    //}); 
-    //server.on("/bootstrap.min.js", HTTP_GET, [](AsyncWebServerRequest *request){
-      //request->send(SPIFFS, "/bootstrap.min.js", "text/javascript");
-    //});
-    server.on("/radio_conf.json", HTTP_GET, [](AsyncWebServerRequest *request){
-      request->send(SPIFFS, "/radio_conf.json", "text/javascript");
+    server.on("/btx_conf.json", HTTP_GET, [](AsyncWebServerRequest *request){
+      request->send(SPIFFS, "/btx_conf.json", "text/javascript");
     });
-    server.on("/ntrip_conf.json", HTTP_GET, [](AsyncWebServerRequest *request){
-      request->send(SPIFFS, "/ntrip_conf.json", "text/javascript");
-    });
-    server.on("/board_conf.json", HTTP_GET, [](AsyncWebServerRequest *request){
-      request->send(SPIFFS, "/board_conf.json", "text/javascript");
-    });
-    server.on("/requestL", HTTP_GET, [](AsyncWebServerRequest *request){
-      request->send(SPIFFS, "/loc.json", "text/javascript");
-    });    
-    server.on("/loc.json", HTTP_GET, [](AsyncWebServerRequest *request){
-      request->send(SPIFFS, "/loc.json", "text/javascript");
-    }); 
     server.on("/ntrip_app.json", HTTP_GET, [](AsyncWebServerRequest *request){
-      request->send(SPIFFS, "/ntrip_app.json", "text/javascript");
+      request->send(200);
     });     
-    server.on("/ntrip", HTTP_POST, [](AsyncWebServerRequest *request){
+    server.on("/client", HTTP_POST, [](AsyncWebServerRequest *request){
       // GET input1 value on <ESP_IP>/get?input1=<inputMessage>
-      if (request->hasParam("wifi", true)){
-        AsyncWebParameter* ba = request->getParam("wifi", true);
-        AsyncWebParameter* bb = request->getParam("wifipass", true);
-        AsyncWebParameter* bc = request->getParam("IP", true);
-        AsyncWebParameter* bd = request->getParam("port", true);
-        AsyncWebParameter* be = request->getParam("mountpt", true);
-        AsyncWebParameter* bf = request->getParam("user", true);
-        AsyncWebParameter* bg = request->getParam("userpass", true);
+      if (request->hasParam("txc", true)){
+        AsyncWebParameter* ba = request->getParam("txc", true);   
+        AsyncWebParameter* bc = request->getParam("pwrc", true);
+        AsyncWebParameter* bd = request->getParam("prtc", true);
+        AsyncWebParameter* be = request->getParam("wifi", true);
+        AsyncWebParameter* bf = request->getParam("wifipass", true);
+        AsyncWebParameter* bg = request->getParam("IP", true);
+        AsyncWebParameter* bh = request->getParam("port", true);
+        AsyncWebParameter* bi = request->getParam("mountpt", true);
+        AsyncWebParameter* bj = request->getParam("user", true);
+        AsyncWebParameter* bk = request->getParam("userpass", true);
+        AsyncWebParameter* bl = request->getParam("Latitude", true);
+        AsyncWebParameter* bm = request->getParam("Longitude", true);
+        AsyncWebParameter* bn = request->getParam("Precisao", true);
+        AsyncWebParameter* bo = request->getParam("Altitude", true);
+        AsyncWebParameter* bp = request->getParam("tempoutc", true);
+        AsyncWebParameter* bq = request->getParam("ChLoc", true);
 
-        WIFI = ba->value();
-        WPAS = bb->value();
-        HOST = bc->value();
-        PORT = bd->value();
-        MNTP = be->value();
-        USER = bf->value();
-        UPAS = bg->value();
+        CHTXC = ba->value();
+        TPWRC = bc->value();
+        TPRTC = bd->value();
+        WIFI =  be->value();
+        WPAS =  bf->value();
+        HOST =  bg->value();
+        PORT =  bh->value();
+        MNTP =  bi->value();
+        USER =  bj->value();
+        UPAS =  bk->value();
+        Latitude =  bl->value();
+        Longitude = bm->value();
+        Precisao =  bn->value();
+        Altitude =  bo->value();
+        Tempoutc =  bp->value();
+        ChLoc =     bq->value();
       }
-      conf_ntrip = 1;
+      INPT = "CLIENT";
+      SBUDC = "115200";
+      conf_btx = 1;
       request->send(200);
       //request->send(SPIFFS, "/index.html", String(), false, processor);
     });
-    server.on("/radio", HTTP_POST, [](AsyncWebServerRequest *request){
-      if (request->hasParam("input", true)){
-        AsyncWebParameter* aa = request->getParam("input", true);
-        AsyncWebParameter* ab = request->getParam("tx", true);
-        AsyncWebParameter* ac = request->getParam("rx", true);
-        AsyncWebParameter* ad = request->getParam("sbaud", true);
-        AsyncWebParameter* ae = request->getParam("pwr", true);
-        AsyncWebParameter* af = request->getParam("prt", true);
-    // Armazena os valores recebidos em variáveis
-        INPT = aa->value();
-        CHTX = ab->value();
-        CHRX = ac->value();
-        SBUD = ad->value();
-        TPWR = ae->value();
-        TPRT = af->value();
+    server.on("/local", HTTP_POST, [](AsyncWebServerRequest *request){
+      // GET input1 value on <ESP_IP>/get?input1=<inputMessage>
+      if (request->hasParam("sbaudl", true)){
+        AsyncWebParameter* ya = request->getParam("sbaudl", true);
+        AsyncWebParameter* yb = request->getParam("wifil", true);
+        AsyncWebParameter* yc = request->getParam("wifipassl", true);
+        AsyncWebParameter* yd = request->getParam("IPl", true);
+        AsyncWebParameter* ye = request->getParam("mountptl", true);
+        AsyncWebParameter* yf = request->getParam("userl", true);
+        AsyncWebParameter* yg = request->getParam("userpassl", true);
+
+        SBAUDL = ya->value();
+        WIFIL = yb->value();
+        WPASL = yc->value();
+        HOSTL = yd->value();
+        MNTPL = ye->value();
+        USERL = yf->value();
+        UPASL = yg->value();
       }
-      conf_radio = 1;
-      conf_board = 1;
+      INPT = "LOCAL";
+      conf_btx = 1;
       request->send(200);
-      //request->send(SPIFFS, "/index.html", String(), false, processor);
+    });
+    server.on("/serial", HTTP_POST, [](AsyncWebServerRequest *request){
+      if (request->hasParam("tx", true)){
+        AsyncWebParameter* aa = request->getParam("tx", true);
+        AsyncWebParameter* ab = request->getParam("rx", true);
+        AsyncWebParameter* ac = request->getParam("sbaud", true);
+        AsyncWebParameter* ad = request->getParam("pwr", true);
+        AsyncWebParameter* ae = request->getParam("prt", true);
+    // Armazena os valores recebidos em variáveis
+        CHTX = aa->value();
+        CHRX = ab->value();
+        SBUD = ac->value();
+        TPWR = ad->value();
+        TPRT = ae->value();
+      }
+      INPT = "SERIAL";
+      conf_btx = 1;
+      request->send(200);
     }); 
-    server.on("/txchanels", HTTP_POST, [](AsyncWebServerRequest *request){
+    server.on("/txChannel", HTTP_POST, [](AsyncWebServerRequest *request){
       if (request->hasParam("ch_0_tx",true)){
         AsyncWebParameter* sa = request->getParam("ch_0_tx", true);
         AsyncWebParameter* sb = request->getParam("ch_1_tx", true);
@@ -1542,10 +1684,10 @@ void setup(){
       else {
         Serial.println("Credenciais não encontradas");
       }
-      conf_radio=1;
+      conf_btx=1;
       request->send(200);
     }); 
-    server.on("/rxchanels", HTTP_POST, [](AsyncWebServerRequest *request){
+    server.on("/rxChannel", HTTP_POST, [](AsyncWebServerRequest *request){
       if (request->hasParam("ch_0_rx",true)){
         AsyncWebParameter* da = request->getParam("ch_0_rx", true);
         AsyncWebParameter* db = request->getParam("ch_1_rx", true);
@@ -1571,33 +1713,9 @@ void setup(){
       else {
         Serial.println("Credenciais não encontradas");
       }
-      conf_radio=1;
+      conf_btx=1;
       request->send(200);
     });
-
-    server.on("/loc", HTTP_POST, [](AsyncWebServerRequest * request) {
-    // Verifique se o parâmetro POST existe ou não
-    if (request->hasParam("Latitude", true)) {
-      AsyncWebParameter* la = request->getParam("Latitude", true);
-      AsyncWebParameter* lo = request->getParam("Longitude", true);
-      AsyncWebParameter* pr = request->getParam("Precisao", true);
-      AsyncWebParameter* al = request->getParam("Altitude", true);
-      AsyncWebParameter* te = request->getParam("tempoutc", true);
-      AsyncWebParameter* ch = request->getParam("ChLoc", true);
-    // Armazena os valores recebidos em variáveis
-    Latitude = la->value();
-    Longitude = lo->value();
-    Precisao = pr->value();
-    Altitude = al->value();
-    Tempoutc = te->value();
-    ChLoc = ch->value(); 
-    }
-    else {
-      Serial.println("Credenciais não encontradas");
-    }
-    saveLoc = 1;
-    request->send(200);
-  });
     
     server.on("/adv", HTTP_POST, [](AsyncWebServerRequest *request){
       if (request->hasParam("modo",true)){
@@ -1613,13 +1731,12 @@ void setup(){
       else {
         Serial.println("Credenciais não encontradas");
       }
-      conf_radio=1;
-      conf_board=1;
+      conf_btx=1;
       request->send(200);
     });
     server.on("/closeconf", HTTP_POST, [](AsyncWebServerRequest *request){
       CONF = "0";
-      conf_board=1;
+      conf_btx=1;
       conf_exit=1;
       request->send(200);
     });
@@ -1631,26 +1748,12 @@ void setup(){
     int j =0;
     while(true){
       dnsServer.processNextRequest();
-      if(conf_ntrip==1){
+      if(conf_btx==1){
         //delay(100);
-        saveConfigFile(NTRIP_data);
-        conf_ntrip=0;
+        saveConfigFile(BTX_data);
+        conf_btx=0;
       }
-      if(conf_radio==1){
-        //delay(100);
-        saveConfigFile(RADIO_data);
-        conf_radio=0;
-      }
-      if(conf_board==1){
-        //delay(100);
-        saveConfigFile(BOARD_data);
-        conf_board=0;
-      }
-      if(saveLoc == 1){
-        saveConfigFile(LOC_data);
-        saveLoc = 0;
-      }
-      if(conf_exit==1&&conf_ntrip==0&&conf_radio==0&&conf_board==0&&saveLoc==0){
+      if(conf_exit==1&&conf_btx==0){
         delay(1000);
         ESP.restart();
       }
@@ -1684,7 +1787,7 @@ void setup(){
         }
         if(digitalRead(BT1)==1){
           CONF="0";
-          saveConfigFile(BOARD_data);
+          saveConfigFile(BTX_data);
           delay(100);
           ESP.restart();
         }else{
@@ -1695,222 +1798,216 @@ void setup(){
       }
     }  
   }else if(CONF=="0"){ 
-    if(INPT=="CLIENT"){
-      WiFi.begin(cWIFI, cWPAS);
-      int t=0;
-      while (WiFi.status() != WL_CONNECTED) {
-        delay(1000);
-        //Serial.println("Connecting to WiFi..");
-        if(t>5){
-          for(int wait=0;wait<10;wait++){
-          leds.setLedColorData(0, 250, 130, 0);
-          leds.show();
-          delay(1);
-          leds.setLedColorData(1, 0, 0, 0);
-          leds.show();
-          delay(500);
-          leds.setLedColorData(0, 0, 0, 0);
-          leds.show();
-          delay(1);
-          leds.setLedColorData(1, 250, 130, 0);
-          leds.show();
-          delay(500);
-          if(digitalRead(BT1)==1){
-             for(int r=0;r<2;r++){
-                for(int lh=0;lh<200;lh++){
-                  delay(3);
-                  leds.setLedColorData(0, 0, 0, lh);
-                  leds.show();
-                  delay(3);
-                  leds.setLedColorData(1, 0, 0, lh);
-                  leds.show();
-                }
-                for(int ll=200;ll>0;ll--){
-                  delay(3);
-                  leds.setLedColorData(0, 0, 0, ll);
-                  leds.show();
-                  delay(3);
-                  leds.setLedColorData(1, 0, 0, ll);
-                  leds.show();
-                }
-            }
-            if(digitalRead(BT1)==1){
-              CONF="1";
-              saveConfigFile(BOARD_data);
-              delay(100);
-              ESP.restart();
-            }
-          }
-        }
-        ESP.restart();
-        }else{
-          t++;
-        }
-      }
-      Serial.println(WiFi.localIP());
-      int iPORT = strtol(PORT.c_str(), NULL, 0);
-      Serial.println("Requesting SourceTable.");
-      if(ntrip_c.reqSrcTbl(cHOST,iPORT)){
-        char buffer[512];
-        delay(1000);
-        while(ntrip_c.available()){
-          ntrip_c.readLine(buffer,sizeof(buffer));
-          Serial.print(buffer); 
-        }
-      }else{
-        Serial.println("SourceTable request error");
-      }
-      Serial.print("Requesting SourceTable is OK\n");
-      ntrip_c.stop(); //Need to call "stop" function for next request.
-      Serial.println("Requesting MountPoint's Raw data");     
-      if(ChLoc=="S"){
-        if(Latitude!=""&&Longitude!=""&&Altitude!=""&&Tempoutc!=""){
-          String nmeaGGA = CriaGGA(Latitude,Longitude,Altitude,Tempoutc);
-          if(!ntrip_c.reqRaw(cHOST,iPORT,cMNTP,cUSER,cUPAS,nmeaGGA,ChLoc)){
-          Serial.println("unable to connect with ntrip caster");
-          delay(100);
-          for(int wait=0;wait<10;wait++){
-            leds.setLedColorData(0, 100, 0, 0);
-            leds.show();
-            delay(1);
-            leds.setLedColorData(1, 0, 0, 0);
-            leds.show();
-            delay(1);
-            leds.setLedColorData(0, 100, 0, 0);
-            leds.show();
-            delay(1);
-            leds.setLedColorData(1, 0, 0, 0);
-            leds.show();
-            delay(500);
-            leds.setLedColorData(0, 0, 0, 0);
-            leds.show();
-            delay(1);
-            leds.setLedColorData(1, 100, 0, 0);
-            leds.show();
-            delay(1);
-            leds.setLedColorData(0, 0, 0, 0);
-            leds.show();
-            delay(1);
-            leds.setLedColorData(1, 100, 0, 0);
-            leds.show();
-            delay(500);
-            if(digitalRead(BT1)==1){
-               for(int r=0;r<2;r++){
-                  for(int lh=0;lh<200;lh++){
-                    delay(3);
-                    leds.setLedColorData(0, 0, 0, lh);
-                    leds.show();
-                    delay(3);
-                    leds.setLedColorData(1, 0, 0, lh);
-                    leds.show();
-                  }
-                  for(int ll=200;ll>0;ll--){
-                    delay(3);
-                    leds.setLedColorData(0, 0, 0, ll);
-                    leds.show();
-                    delay(3);
-                    leds.setLedColorData(1, 0, 0, ll);
-                    leds.show();
-                  }
-              }
-              if(digitalRead(BT1)==1){
-                CONF="1";
-                saveConfigFile(BOARD_data);
-                delay(100);
-                ntrip_c.stop();
-                ESP.restart();
-              }
-            }
-          }
-          ntrip_c.stop();
-          ESP.restart();
-          }
-        } 
-      }else if (ChLoc=="N"){
-        if(!ntrip_c.reqRaw(cHOST,iPORT,cMNTP,cUSER,cUPAS,"","")){
-          Serial.println("unable to connect with ntrip caster");
-          delay(100);
-          for(int wait=0;wait<10;wait++){
-            leds.setLedColorData(0, 100, 0, 0);
-            leds.show();
-            delay(1);
-            leds.setLedColorData(1, 0, 0, 0);
-            leds.show();
-            delay(1);
-            leds.setLedColorData(0, 100, 0, 0);
-            leds.show();
-            delay(1);
-            leds.setLedColorData(1, 0, 0, 0);
-            leds.show();
-            delay(500);
-            leds.setLedColorData(0, 0, 0, 0);
-            leds.show();
-            delay(1);
-            leds.setLedColorData(1, 100, 0, 0);
-            leds.show();
-            delay(1);
-            leds.setLedColorData(0, 0, 0, 0);
-            leds.show();
-            delay(1);
-            leds.setLedColorData(1, 100, 0, 0);
-            leds.show();
-            delay(500);
-            if(digitalRead(BT1)==1){
-               for(int r=0;r<2;r++){
-                  for(int lh=0;lh<200;lh++){
-                    delay(3);
-                    leds.setLedColorData(0, 0, 0, lh);
-                    leds.show();
-                    delay(3);
-                    leds.setLedColorData(1, 0, 0, lh);
-                    leds.show();
-                  }
-                  for(int ll=200;ll>0;ll--){
-                    delay(3);
-                    leds.setLedColorData(0, 0, 0, ll);
-                    leds.show();
-                    delay(3);
-                    leds.setLedColorData(1, 0, 0, ll);
-                    leds.show();
-                  }
-              }
-              if(digitalRead(BT1)==1){
-                CONF="1";
-                saveConfigFile(BOARD_data);
-                delay(100);
-                ntrip_c.stop();
-                ESP.restart();
-              }
-            }
-          }
-          ntrip_c.stop();
-          ESP.restart();
-        }
-      }
-      leds.setLedColorData(0, 0, 200, 0);
-      leds.show();
-      delay(1);
-      input = 1;
-      digitalWrite(CONFP,HIGH);
-    }else if (INPT=="SERIAL"){
-      leds.setLedColorData(0, 255, 135, 0);
-      leds.show();
-      delay(1);
-      input = 0;
-      Serial1.end();
-      pinMode(TXDT,INPUT);
-      pinMode(RXDT,INPUT);
-      ext_com(HIGH);
-      digitalWrite(CONFP,HIGH);
-      if(FlagOnly5V==false){
-        digitalWrite(POUTEN,HIGH);
-      }
+    if(INPT=="SERIAL"){
+      serial();
+    }else if(INPT=="CLIENT"){
+      cliente();
+    }else if(INPT=="LOCAL"){
+      local();
     }
   }
 }
- 
-void loop(){
-  if(input==1){
+
+void loop(){}
+
+void cliente(){
+  WiFi.begin(cWIFI, cWPAS);
+  int t=0;
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    //Serial.println("Connecting to WiFi..");
+    if(t>5){
+      for(int wait=0;wait<10;wait++){
+      leds.setLedColorData(0, 250, 130, 0);
+      leds.show();
+      delay(1);
+      leds.setLedColorData(1, 0, 0, 0);
+      leds.show();
+      delay(500);
+      leds.setLedColorData(0, 0, 0, 0);
+      leds.show();
+      delay(1);
+      leds.setLedColorData(1, 250, 130, 0);
+      leds.show();
+      delay(500);
+      if(digitalRead(BT1)==1){
+         for(int r=0;r<2;r++){
+            for(int lh=0;lh<200;lh++){
+              delay(3);
+              leds.setLedColorData(0, 0, 0, lh);
+              leds.show();
+              delay(3);
+              leds.setLedColorData(1, 0, 0, lh);
+              leds.show();
+            }
+            for(int ll=200;ll>0;ll--){
+              delay(3);
+              leds.setLedColorData(0, 0, 0, ll);
+              leds.show();
+              delay(3);
+              leds.setLedColorData(1, 0, 0, ll);
+              leds.show();
+            }
+        }
+        if(digitalRead(BT1)==1){
+          CONF="1";
+          saveConfigFile(BTX_data);
+          delay(100);
+          ESP.restart();
+        }
+      }
+    }
+    ESP.restart();
+    }else{
+      t++;
+    }
+  }
+  Serial.println(WiFi.localIP());
+  int iPORT = strtol(PORT.c_str(), NULL, 0);
+  Serial.println("Requesting SourceTable.");
+  if(ntrip_c.reqSrcTbl(cHOST,iPORT)){
+    char buffer[512];
+    delay(1000);
+    while(ntrip_c.available()){
+      ntrip_c.readLine(buffer,sizeof(buffer));
+      Serial.print(buffer); 
+    }
+  }else{
+    Serial.println("SourceTable request error");
+  }
+  Serial.print("Requesting SourceTable is OK\n");
+  ntrip_c.stop(); //Need to call "stop" function for next request.
+  Serial.println("Requesting MountPoint's Raw data");     
+  if(ChLoc=="S"){
+    if(Latitude!=""&&Longitude!=""&&Altitude!=""&&Tempoutc!=""){
+      String nmeaGGA = CriaGGA(Latitude,Longitude,Altitude,Tempoutc);
+      if(!ntrip_c.reqRaw(cHOST,iPORT,cMNTP,cUSER,cUPAS,nmeaGGA,ChLoc)){
+      Serial.println("unable to connect with ntrip caster");
+      delay(100);
+      for(int wait=0;wait<10;wait++){
+        leds.setLedColorData(0, 100, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(0, 100, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 0);
+        leds.show();
+        delay(500);
+        leds.setLedColorData(0, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 100, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(0, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 100, 0, 0);
+        leds.show();
+        delay(500);
+        if(digitalRead(BT1)==1){
+           for(int r=0;r<2;r++){
+              for(int lh=0;lh<200;lh++){
+                delay(3);
+                leds.setLedColorData(0, 0, 0, lh);
+                leds.show();
+                delay(3);
+                leds.setLedColorData(1, 0, 0, lh);
+                leds.show();
+              }
+              for(int ll=200;ll>0;ll--){
+                delay(3);
+                leds.setLedColorData(0, 0, 0, ll);
+                leds.show();
+                delay(3);
+                leds.setLedColorData(1, 0, 0, ll);
+                leds.show();
+              }
+          }
+          if(digitalRead(BT1)==1){
+            CONF="1";
+            saveConfigFile(BTX_data);
+            delay(100);
+            ntrip_c.stop();
+            ESP.restart();
+          }
+        }
+      }
+      ntrip_c.stop();
+      ESP.restart();
+      }
+    } 
+  }else if (ChLoc=="N"){
+    if(!ntrip_c.reqRaw(cHOST,iPORT,cMNTP,cUSER,cUPAS,"","")){
+      Serial.println("unable to connect with ntrip caster");
+      delay(100);
+      for(int wait=0;wait<10;wait++){
+        leds.setLedColorData(0, 100, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(0, 100, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 0);
+        leds.show();
+        delay(500);
+        leds.setLedColorData(0, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 100, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(0, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 100, 0, 0);
+        leds.show();
+        delay(500);
+        if(digitalRead(BT1)==1){
+           for(int r=0;r<2;r++){
+              for(int lh=0;lh<200;lh++){
+                delay(3);
+                leds.setLedColorData(0, 0, 0, lh);
+                leds.show();
+                delay(3);
+                leds.setLedColorData(1, 0, 0, lh);
+                leds.show();
+              }
+              for(int ll=200;ll>0;ll--){
+                delay(3);
+                leds.setLedColorData(0, 0, 0, ll);
+                leds.show();
+                delay(3);
+                leds.setLedColorData(1, 0, 0, ll);
+                leds.show();
+              }
+          }
+          if(digitalRead(BT1)==1){
+            CONF="1";
+            saveConfigFile(BTX_data);
+            delay(100);
+            ntrip_c.stop();
+            ESP.restart();
+          }
+        }
+      }
+      ntrip_c.stop();
+      ESP.restart();
+    }
+  }
+  leds.setLedColorData(0, 0, 200, 0);
+  leds.show();
+  delay(1);
+  input = 1;
+  digitalWrite(CONFP,HIGH);
+  while(true){
     if(ntrip_c.available()){
       currentMillis = millis();
       delay(1);
@@ -1946,7 +2043,139 @@ void loop(){
       ntrip_c.stop();
       ESP.restart();
     }
-  }else if(input==0){
+    delay(1);
+    leds.setLedColorData(1, 0, 0, 0);
+    leds.show();
+    if(digitalRead(BT1)==1){
+      for(int r=0;r<2;r++){
+        for(int lh=0;lh<200;lh++){
+          delay(3);
+          leds.setLedColorData(0, 0, 0, lh);
+          leds.show();
+          delay(3);
+          leds.setLedColorData(1, 0, 0, lh);
+          leds.show();
+        }
+        for(int ll=200;ll>0;ll--){
+          delay(3);
+          leds.setLedColorData(0, 0, 0, ll);
+          leds.show();
+          delay(3);
+          leds.setLedColorData(1, 0, 0, ll);
+          leds.show();
+        }
+      }
+      if(digitalRead(BT1)==1){
+        CONF="1";
+        saveConfigFile(BTX_data);
+        delay(100);
+        ntrip_c.stop();
+        ESP.restart();
+      }
+      delay(1);
+      leds.setLedColorData(0, 0, 200, 0);
+      leds.show();
+      delay(1);
+    } 
+    if(digitalRead(BT2)==1){
+      if(TPWR=="H"){
+        for(int y=0;y<2;y++){
+          delay(1);
+          leds.setLedColorData(0, 250,0,0);
+          leds.show();
+          delay(250);
+          leds.setLedColorData(0, 0,0,0);
+          leds.show();
+          delay(250);
+        }
+        if(digitalRead(BT2)==1){
+          TPWR="L";
+          saveConfigFile(BTX_data);
+          du2005conf("PWR",TPWR);
+          digitalWrite(CONFP,HIGH);
+          for(int v=0;v<2;v++){
+            delay(1);
+            leds.setLedColorData(0, 0,0,250);
+            leds.show();
+            delay(250);
+            leds.setLedColorData(0, 0,0,0);
+            leds.show();
+            delay(250);
+          }
+        }
+      }
+      if(TPWR=="M"){
+        for(int z=0;z<2;z++){
+          delay(1);
+          leds.setLedColorData(0, 0,250,0);
+          leds.show();
+          delay(250);
+          leds.setLedColorData(0, 0,0,0);
+          leds.show();
+          delay(250);
+        }
+        if(digitalRead(BT2)==1){
+          TPWR="H";
+          saveConfigFile(BTX_data);
+          du2005conf("PWR",TPWR);
+          digitalWrite(CONFP,HIGH);
+          for(int x=0;x<2;x++){
+            delay(1);
+            leds.setLedColorData(0,250,0,0);
+            leds.show();
+            delay(250);
+            leds.setLedColorData(0, 0,0,0);
+            leds.show();
+            delay(250);
+          }
+        }
+      }
+      if(TPWR=="L"){
+        for(int b=0;b<2;b++){
+          delay(1);
+          leds.setLedColorData(0, 0,0,250);
+          leds.show();
+          delay(250);
+          leds.setLedColorData(0, 0,0,0);
+          leds.show();
+          delay(250);
+        }
+        if(digitalRead(BT2)==1){
+          TPWR="M";
+          saveConfigFile(BTX_data);
+          du2005conf("PWR",TPWR);
+          digitalWrite(CONFP,HIGH);
+          for(int k=0;k<2;k++){
+            delay(1);
+            leds.setLedColorData(0, 0,250,0);
+            leds.show();
+            delay(250);
+            leds.setLedColorData(0, 0,0,0);
+            leds.show();
+            delay(250);
+          }
+        }
+      }
+      ntrip_c.stop();
+      ESP.restart();
+    }
+  }
+}
+
+void serial(){
+  leds.setLedColorData(0, 255, 135, 0);
+  leds.show();
+  delay(1);
+  input = 0;
+  Serial1.end();
+  pinMode(TXDT,INPUT);
+  pinMode(RXDT,INPUT);
+  ext_com(HIGH);
+  digitalWrite(CONFP,HIGH);
+  if(FlagOnly5V==false){
+    digitalWrite(POUTEN,HIGH);
+  }
+  while(true){
     delay(1);
     if(digitalRead(RXDT)==0){
       leds.setLedColorData(1, 0, 0, 200);
@@ -1960,117 +2189,69 @@ void loop(){
         }
       }
     }
-  }
-  delay(1);
-  leds.setLedColorData(1, 0, 0, 0);
-  leds.show();
-  if(digitalRead(BT1)==1){
-    for(int r=0;r<2;r++){
-      for(int lh=0;lh<200;lh++){
-        delay(3);
-        leds.setLedColorData(0, 0, 0, lh);
-        leds.show();
-        delay(3);
-        leds.setLedColorData(1, 0, 0, lh);
-        leds.show();
-      }
-      for(int ll=200;ll>0;ll--){
-        delay(3);
-        leds.setLedColorData(0, 0, 0, ll);
-        leds.show();
-        delay(3);
-        leds.setLedColorData(1, 0, 0, ll);
-        leds.show();
-      }
-    }
+    delay(1);
+    leds.setLedColorData(1, 0, 0, 0);
+    leds.show();
     if(digitalRead(BT1)==1){
-      CONF="1";
-      saveConfigFile(BOARD_data);
-      delay(100);
-      ntrip_c.stop();
-      ESP.restart();
-    }
-    if(input==1){
-      delay(1);
-      leds.setLedColorData(0, 0, 200, 0);
-      leds.show();
-      delay(1);
-    }else if(input==0){
+      for(int r=0;r<2;r++){
+        for(int lh=0;lh<200;lh++){
+          delay(3);
+          leds.setLedColorData(0, 0, 0, lh);
+          leds.show();
+          delay(3);
+          leds.setLedColorData(1, 0, 0, lh);
+          leds.show();
+        }
+        for(int ll=200;ll>0;ll--){
+          delay(3);
+          leds.setLedColorData(0, 0, 0, ll);
+          leds.show();
+          delay(3);
+          leds.setLedColorData(1, 0, 0, ll);
+          leds.show();
+        }
+      }
+      if(digitalRead(BT1)==1){
+        CONF="1";
+        saveConfigFile(BTX_data);
+        delay(100);
+        ntrip_c.stop();
+        ESP.restart();
+      }
       delay(1);
       leds.setLedColorData(0, 255, 135, 0);
       leds.show();
       delay(1);
-    }
-  } 
-  if(digitalRead(BT2)==1){
-    if(TPWR=="H"){
-      for(int y=0;y<2;y++){
-        delay(1);
-        leds.setLedColorData(0, 250,0,0);
-        leds.show();
-        delay(250);
-        leds.setLedColorData(0, 0,0,0);
-        leds.show();
-        delay(250);
-      }
-      if(digitalRead(BT2)==1){
-        TPWR="L";
-        saveConfigFile(RADIO_data);
-        du2005conf("PWR",TPWR);
-        digitalWrite(CONFP,HIGH);
-        for(int v=0;v<2;v++){
+    } 
+    if(digitalRead(BT2)==1){
+      if(TPWR=="H"){
+        for(int y=0;y<2;y++){
           delay(1);
-          leds.setLedColorData(0, 0,0,250);
+          leds.setLedColorData(0, 250,0,0);
           leds.show();
           delay(250);
           leds.setLedColorData(0, 0,0,0);
           leds.show();
           delay(250);
         }
-      }
-    }
-    if(TPWR=="M"){
-      for(int z=0;z<2;z++){
-        delay(1);
-        leds.setLedColorData(0, 0,250,0);
-        leds.show();
-        delay(250);
-        leds.setLedColorData(0, 0,0,0);
-        leds.show();
-        delay(250);
-      }
-      if(digitalRead(BT2)==1){
-        TPWR="H";
-        saveConfigFile(RADIO_data);
-        du2005conf("PWR",TPWR);
-        digitalWrite(CONFP,HIGH);
-        for(int x=0;x<2;x++){
-          delay(1);
-          leds.setLedColorData(0,250,0,0);
-          leds.show();
-          delay(250);
-          leds.setLedColorData(0, 0,0,0);
-          leds.show();
-          delay(250);
+        if(digitalRead(BT2)==1){
+          TPWR="L";
+          saveConfigFile(BTX_data);
+          du2005conf("PWR",TPWR);
+          digitalWrite(CONFP,HIGH);
+          for(int v=0;v<2;v++){
+            delay(1);
+            leds.setLedColorData(0, 0,0,250);
+            leds.show();
+            delay(250);
+            leds.setLedColorData(0, 0,0,0);
+            leds.show();
+            delay(250);
+          }
         }
       }
-    }
-    if(TPWR=="L"){
-      for(int b=0;b<2;b++){
-        delay(1);
-        leds.setLedColorData(0, 0,0,250);
-        leds.show();
-        delay(250);
-        leds.setLedColorData(0, 0,0,0);
-        leds.show();
-        delay(250);
-      }
-      if(digitalRead(BT2)==1){
-        TPWR="M";
-        saveConfigFile(RADIO_data);
-        du2005conf("PWR",TPWR);
-        digitalWrite(CONFP,HIGH);
-        for(int k=0;k<2;k++){
+      if(TPWR=="M"){
+        for(int z=0;z<2;z++){
           delay(1);
           leds.setLedColorData(0, 0,250,0);
           leds.show();
@@ -2079,21 +2260,224 @@ void loop(){
           leds.show();
           delay(250);
         }
+        if(digitalRead(BT2)==1){
+          TPWR="H";
+          saveConfigFile(BTX_data);
+          du2005conf("PWR",TPWR);
+          digitalWrite(CONFP,HIGH);
+          for(int x=0;x<2;x++){
+            delay(1);
+            leds.setLedColorData(0,250,0,0);
+            leds.show();
+            delay(250);
+            leds.setLedColorData(0, 0,0,0);
+            leds.show();
+            delay(250);
+          }
+        }
       }
+      if(TPWR=="L"){
+        for(int b=0;b<2;b++){
+          delay(1);
+          leds.setLedColorData(0, 0,0,250);
+          leds.show();
+          delay(250);
+          leds.setLedColorData(0, 0,0,0);
+          leds.show();
+          delay(250);
+        }
+        if(digitalRead(BT2)==1){
+          TPWR="M";
+          saveConfigFile(BTX_data);
+          du2005conf("PWR",TPWR);
+          digitalWrite(CONFP,HIGH);
+          for(int k=0;k<2;k++){
+            delay(1);
+            leds.setLedColorData(0, 0,250,0);
+            leds.show();
+            delay(250);
+            leds.setLedColorData(0, 0,0,0);
+            leds.show();
+            delay(250);
+          }
+        }
+      }
+      ESP.restart();
     }
-    ntrip_c.stop();
-    ESP.restart();
-    /*if(input==1){
+  }
+}
+
+void local(){
+  //WiFi.disconnect();
+  Serial.println("modo local");
+    
+   WiFi.mode(WIFI_AP); 
+   WiFi.softAP(cWIFIL,cWPASL,7,0,10);   //launch the access point
+   Serial.println("Wait 100 ms for AP_START...");
+   delay(100);
+    //Serial.println("Setting the AP");
+   IPAddress Ip(192, 168, 0, 1);    //setto IP Access Point same as gateway
+    IPAddress Iplocal(192, 168, 0, 1); 
+    IPAddress NMask(255, 255, 255, 0);
+   WiFi.softAPConfig(Iplocal, Ip, NMask);
+   delay(100);
+  wifiServer.begin();
+  Serial.print("IP: ");Serial.println(WiFi.softAPIP());
+  Serial1.begin(SBAUDL.toInt(), SERIAL_8N1, TXDT, RXDT);
+  delay(1);
+  ext_com(HIGH);
+  if(FlagOnly5V==false){
+    digitalWrite(POUTEN,HIGH);
+  }
+  v5p(LOW);
+  leds.setLedColorData(0, 200, 0, 0);
+  leds.show();
+  Serial.println("esperando por cliente");
+  while(true){
+    WiFiClient client = wifiServer.available();
+    //Serial.print(".");
+    if (client) {
+      //Serial.println(client);
+   
+      while (client.connected()) {
+        int counter = 0;
+        
+        while (client.available()>0) {
+          cliente_data_ap[counter] = client.read();
+          counter++;
+          if(client.available()==0){        
+            
+            String c_data_s = String(cliente_data_ap);
+  
+            if(c_data_s.indexOf("$GPGGA")==-1){
+              
+              currentMillis_ap = millis();
+              switch(check_ver(c_data_s)*check_mountpoint(c_data_s,MNTPL)*check_aut(c_data_s,USERL,UPASL)){
+                case 40:  Serial.println("REV1 + mount point correto + autentificação correta");// REV1 + mount point correto + autentificação correta
+                          client.println(res_rev1);
+                          flag_ok_ap = true;
+                          delay(1);
+                          leds.setLedColorData(0, 0, 200, 0);
+                          leds.show();
+                  break;
+                case 48:  Serial.println("REV1 + solicita mount point + autentificação correta");// REV1 + solicita mount point + autentificação correta
+                          client.println(res_rev1_ST);
+                          client.println(scrtbl(cMNTPL,WiFi.softAPIP().toString(),port));
+                          client.stop();
+                  break;
+                case 56:  Serial.println("REV1 + mount point incorreto + autentificação correta");// REV1 + mount point incorreto + autentificação correta
+                          flag_ok_ap = false;
+                  break;
+                case 45:  Serial.println("REV1 + mount point correto + autentificação incorreta");// REV1 + mount point correto + autentificação incorreta
+                          flag_ok_ap = false;
+                  break;
+                case 54:  Serial.println("REV1 + solicita mount point + autentificação incorreta");// REV1 + solicita mount point + autentificação incorreta
+                          flag_ok_ap = false;
+                  break; 
+                case 63:  Serial.println("REV1 + mount point incorreto + autentificação incorreta");// REV1 + mount point incorreto + autentificação incorreta
+                          flag_ok_ap = false;
+                  break;
+  
+                case 80:  Serial.println("REV2 + mount point correto + autentificação correta");// REV2 + mount point correto + autentificação correta
+                          client.println(res_rev1);
+                          flag_ok_ap = true;
+                          delay(1);
+                          leds.setLedColorData(0, 0, 200, 0);
+                          leds.show();
+                  break;
+                case 96:  Serial.println("REV2 + solicita mount point + autentificação correta");// REV2 + solicita mount point + autentificação correta
+                          client.println(res_rev1_ST);
+                          client.println(scrtbl(cMNTPL,WiFi.softAPIP().toString(),port));
+                          client.stop();
+                  break;
+                case 112: Serial.println("REV2 + mount point incorreto + autentificação correta");// REV2 + mount point incorreto + autentificação correta
+                          flag_ok_ap = false;
+                  break;
+                case 90:  Serial.println("REV2 + mount point correto + autentificação incorreta");// REV2 + mount point correto + autentificação incorreta
+                          flag_ok_ap = false;
+                  break;
+                case 108: Serial.println("REV2 + solicita mount point + autentificação incorreta");// REV2 + solicita mount point + autentificação incorreta
+                          flag_ok_ap = false;
+                  break;
+                case 126: Serial.println("REV2 + mount point incorreto + autentificação incorreta");// REV2 + mount point incorreto + autentificação incorreta
+                          flag_ok_ap = false;
+                  break;
+  
+                case 160: Serial.println("NAO HTTP + mount point correto + autentificação correta");// NAO HTTP + mount point correto + autentificação correta
+                          flag_ok_ap = false;
+                  break;
+                case 192: Serial.println("NAO HTTP + solicita mount point + autentificação correta");// NAO HTTP + solicita mount point + autentificação correta
+                          flag_ok_ap = false;
+                  break;
+                case 224: Serial.println("NAO HTTP + mount point incorreto + autentificação correta");// NAO HTTP + mount point incorreto + autentificação correta
+                          flag_ok_ap = false;
+                  break;
+                case 180: Serial.println("NAO HTTP + mount point correto + autentificação incorreta");// NAO HTTP + mount point correto + autentificação incorreta
+                          flag_ok_ap = false;
+                  break;
+                case 216: Serial.println("NAO HTTP + solicita mount point + autentificação incorreta");// NAO HTTP + solicita mount point + autentificação incorreta
+                          flag_ok_ap = false;
+                  break;
+                case 252: Serial.println("NAO HTTP + mount point incorreto + autentificação incorreta");// NAO HTTP + mount point incorreto + autentificação incorreta
+                          flag_ok_ap = false;
+                  break;
+              }
+              long int size = sizeof(cliente_data_ap);
+              memset(cliente_data_ap,' ',size*sizeof(char));
+            }
+            else{
+              currentMillis_ap = millis();
+              flag_send_ap=true;
+            }
+          } 
+        }
+          atualMillis_ap = millis();
+          if(atualMillis_ap - currentMillis_ap > 2500 && flag_ok_ap == true && currentMillis_ap != 0 && flag_send_ap==true){
+            client.stop();
+            Serial.println(atualMillis_ap - currentMillis_ap);
+            currentMillis_ap = 0;
+            atualMillis_ap = 0;
+            Serial.println("Client disconnected");
+            
+            long int size = sizeof(cliente_data_ap);
+            memset(cliente_data_ap,' ',size*sizeof(char));
+            delay(1);
+            leds.setLedColorData(0, 200, 0, 0);
+            leds.show();
+            delay(200);
+            flag_send_ap=false;
+            //ESP.restart();
+        }
+  
+        while (Serial1.available() && flag_ok_ap == true) {
+          delay(1);
+          leds.setLedColorData(1, 0, 0, 200);
+          leds.show();
+          readcount_ap = 0;
+          while (Serial1.available()) {
+            ch_ap[readcount_ap] = Serial1.read();
+            readcount_ap++;
+            if (readcount_ap > 511)break;
+          }//buffering
+          
+          client.write((uint8_t*)ch_ap, readcount_ap);
+          Serial.write((uint8_t*)ch_ap, readcount_ap);
+          delay(1);
+          leds.setLedColorData(1, 0, 0, 0);
+          leds.show();
+        }
+      }
+      client.stop();
+      Serial.println("Client disconnected");
+      flag_ok_ap == false;
+      long int size = sizeof(cliente_data_ap);
+      currentMillis_ap = 0;
+      atualMillis_ap = 0;
+      memset(cliente_data_ap,' ',size*sizeof(char));
       delay(1);
-      leds.setLedColorData(0, 0, 200, 0);
+      leds.setLedColorData(1, 200, 0, 0);
       leds.show();
-      delay(1);
+      flag_send_ap=false;
     }
-    if(input==0){
-      delay(1);
-      leds.setLedColorData(0, 255, 135, 0);
-      leds.show();
-      delay(1);
-    }*/
   }
 }
