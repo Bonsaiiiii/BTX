@@ -53,13 +53,15 @@ bool flag_ok_ap = false;
 unsigned long currentMillis_ap;
 unsigned long atualMillis_ap;
 unsigned long wait_ap;
-unsigned int readcount_ap;
+unsigned long int readcount_ap;
 
-char ch_ap[512];
-char cliente_data_ap[512];
+char ch_ap[1024];
+char cliente_data_ap[1024];
 
 //variaveis BTX
 
+bool interruptFlag = false;
+bool USBPowerIssueFlag = false;
 int teste;
 String MAC;
 
@@ -148,8 +150,8 @@ String scrtbl(const char* mountpoint, String ip, uint16_t port){
 int check_aut(String data, String user, String pwr){
   char base64[50];
   unsigned char string[50];
-  Serial.print("user: ");Serial.println(user);
-  Serial.print("pwr: ");Serial.println(pwr);
+  //Serial.print("user: ");Serial.println(user);
+  //Serial.print("pwr: ");Serial.println(pwr);
   int posicao = data.indexOf(": Basic");
   posicao = posicao + 8;
   String usuario_encoded = data.substring(posicao);
@@ -161,8 +163,8 @@ int check_aut(String data, String user, String pwr){
   String cliente_usuario = usuario_decoded.substring(0,separador);
   separador ++;
   String cliente_senha = usuario_decoded.substring(separador);
-  Serial.print("cliente_usuario: ");Serial.println(cliente_usuario);
-  Serial.print("cliente_senha: ");Serial.println(cliente_senha);
+  //Serial.print("cliente_usuario: ");Serial.println(cliente_usuario);
+  //Serial.print("cliente_senha: ");Serial.println(cliente_senha);
   if(cliente_usuario == user && cliente_senha == pwr){
     return 8;// senha correta
   }else{
@@ -177,7 +179,7 @@ int check_ver(String data){
     return 4; //ERRO1 
   }
   String versao_http = data.substring(posicao_inicial, posicao_final);
-  Serial.println(versao_http);
+  //Serial.println(versao_http);
   if(versao_http == "HTTP/1.0"){
     return 1; //REV1
   }
@@ -193,8 +195,8 @@ int check_mountpoint(String data, String mountpoint){
   String cliente_mountpoint = data.substring(posicao_inicial,posicao_final);
   String mp = "/";
   mp = mp + mountpoint;
-  Serial.println(cliente_mountpoint);
-  Serial.println(mp);
+  //Serial.println(cliente_mountpoint);
+  //Serial.println(mp);
   if(cliente_mountpoint == mp){
     return 5; //igual
   }
@@ -255,6 +257,7 @@ void init_gpio(){
   pinMode(DET,INPUT);
   pinMode(EXTINV,INPUT);
   pinMode(BYPASS,OUTPUT);
+  pinMode(TXCF,OUTPUT);
 }
 
 bool ext_com(bool state){
@@ -1468,100 +1471,99 @@ String CriaGGA(String lati, String logi, String alti, String tutc){
   return GNGGA;
 }
 
+void IRAM_ATTR handleInterrupt() {
+    interruptFlag = true;
+}
+
 void setup(){
   Serial.begin(115200);
   init_gpio();
   ext_com(LOW);
   leds.begin();
-  for(int l=0;l<255;l++){
+
+  for(int l = 0; l < 255; l++) {
     leds.setLedColorData(0, l, l, l);
     leds.show();
     delay(4);
   }
+
   usbpd(12);
   delay(500);
-  /* se tiver modificação para funcionar somente com 5V
-  if(digitalRead(PDPG)==HIGH){
-    //Serial.println("Not usb pd");
-    //modo 5v
-    FlagOnly5V = true;
-  }else{
-    FlagOnly5V = false;
+
+  if (digitalRead(PDPG) == HIGH) {
+    USBPowerIssueFlag = true;
   }
-  Serial.println("initing");
-  */
-  if(digitalRead(PDPG)==HIGH){
-    while(true){
-      delay(1);
-      leds.setLedColorData(0, 255, 135, 0);
-      leds.show();
-      delay(1);
-      leds.setLedColorData(1, 255, 135, 0);
-      leds.show();
-      delay(1000);
-      leds.setLedColorData(0, 0, 0, 0);
-      leds.show();
-      delay(1);
-      leds.setLedColorData(1, 0, 0, 0);
-      leds.show();
-      delay(1000);
-    }
+
+  if (!SPIFFS.begin(true)) {
+    handleSpiFFSError();
   }
-   //Initialize SPIFFS
-  if(!SPIFFS.begin(true)){
-    Serial.println("An Error has occurred while mounting SPIFFS");
-    while(true){
-      delay(1);
-      leds.setLedColorData(0, 0, 250, 250);
-      leds.show();
-      delay(1);
-      leds.setLedColorData(1, 0, 250, 250);
-      leds.show();
-      delay(1000);
-      leds.setLedColorData(0, 0, 0, 0);
-      leds.show();
-      delay(1);
-      leds.setLedColorData(1, 0, 0, 0);
-      leds.show();
-      delay(1000);
-    }
-  }
+
   loaddata(BTX_data);
   Serial.println("inicia radio");
   init1 = du2005begin();
-  if(init1==0){
-    Serial.println("radio not found");
-    while(true){
-      delay(1);
-      leds.setLedColorData(0, 250, 0, 250);
-      leds.show();
-      delay(1);
-      leds.setLedColorData(1, 250, 0, 250);
-      leds.show();
-      delay(1000);
-      leds.setLedColorData(0, 0, 0, 0);
-      leds.show();
-      delay(1);
-      leds.setLedColorData(1, 0, 0, 0);
-      leds.show();
-      delay(1000);
-    }
+  if (init1 == 0) {
+    handleRadioError();
   }
-  if(CONF=="1"){
-    WiFi.mode(WIFI_AP); 
-    WiFi.softAP("HugenPLUS-RADIO",NULL,7,0,10);   //launch the access point
-    Serial.println("Wait 100 ms for AP_START...");
-    delay(100);
-    //Serial.println("Setting the AP");
-    IPAddress Ip(192, 168, 0, 1);    //setto IP Access Point same as gateway
-    IPAddress Iplocal(192, 168, 0, 1); 
-    IPAddress NMask(255, 255, 255, 0);
-    WiFi.softAPConfig(Iplocal, Ip, NMask);
-    dnsServer.setTTL(300);
-    dnsServer.setErrorReplyCode(DNSReplyCode::ServerFailure);
-    dnsServer.start(53, "btx02.local", Ip);
-    
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+
+  if (CONF == "1") {
+    setupWiFiAndServer();
+  }
+
+  pinMode(BT1, INPUT);
+  attachInterrupt(digitalPinToInterrupt(BT1), handleInterrupt, CHANGE);    
+}
+
+void handleSpiFFSError() {
+  while (true) {
+    delay(1);
+    leds.setLedColorData(0, 0, 255, 255);
+    leds.show();
+    delay(1);
+    leds.setLedColorData(1, 0, 255, 255);
+    leds.show();
+    delay(1000);
+    leds.setLedColorData(0, 0, 0, 0);
+    leds.show();
+    delay(1);
+    leds.setLedColorData(1, 0, 0, 0);
+    leds.show();
+    delay(1000);
+  }
+}
+
+void handleRadioError() {
+  while (true) {
+    delay(1);
+    leds.setLedColorData(0, 128, 0, 128);
+    leds.show();
+    delay(1);
+    leds.setLedColorData(1, 128, 0, 128);
+    leds.show();
+    delay(1000);
+    leds.setLedColorData(0, 0, 0, 0);
+    leds.show();
+    delay(1);
+    leds.setLedColorData(1, 0, 0, 0);
+    leds.show();
+    delay(1000);
+  }
+}
+
+void setupWiFiAndServer() {
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP("HugenPLUS-RADIO", NULL, 7, 0, 10);
+  Serial.println("Wait 100 ms for AP_START...");
+  delay(100);
+  
+  IPAddress Ip(192, 168, 0, 1);
+  IPAddress Iplocal(192, 168, 0, 1);
+  IPAddress NMask(255, 255, 255, 0);
+  WiFi.softAPConfig(Iplocal, Ip, NMask);
+  dnsServer.setTTL(300);
+  dnsServer.setErrorReplyCode(DNSReplyCode::ServerFailure);
+  dnsServer.start(53, "btx02.local", Ip);
+  
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
       request->send(SPIFFS, "/index.html", String(), false, processor);
       conf_btx = 0;
     });
@@ -1735,7 +1737,6 @@ void setup(){
       request->send(200);
     });
     server.on("/closeconf", HTTP_POST, [](AsyncWebServerRequest *request){
-      CONF = "0";
       conf_btx=1;
       conf_exit=1;
       request->send(200);
@@ -1744,73 +1745,185 @@ void setup(){
       MAC = WiFi.softAPmacAddress();
       request->send(200, "application/json", MAC);
     });
-    server.begin();
-    int j =0;
-    while(true){
-      dnsServer.processNextRequest();
-      if(conf_btx==1){
-        //delay(100);
-        saveConfigFile(BTX_data);
-        conf_btx=0;
-      }
-      if(conf_exit==1&&conf_btx==0){
-        delay(1000);
-        ESP.restart();
-      }
-      delay(1);
-      leds.setLedColorData(1, leds.Wheel(j));
-      leds.show();
-      delay(9);
-      if(j<252){
-        j+=2;
-      }else{
-        j=0;
-      }
-      if(digitalRead(BT1)==1){
-        for(int r=0;r<2;r++){
-          for(int lh=0;lh<200;lh++){
-            delay(3);
-            leds.setLedColorData(0, 0, 0, lh);
-            leds.show();
-            delay(3);
-            leds.setLedColorData(1, 0, 0, lh);
-            leds.show();
-          }
-          for(int ll=200;ll>0;ll--){
-            delay(3);
-            leds.setLedColorData(0, 0, 0, ll);
-            leds.show();
-            delay(3);
-            leds.setLedColorData(1, 0, 0, ll);
-            leds.show();
-          }
-        }
-        if(digitalRead(BT1)==1){
-          CONF="0";
-          saveConfigFile(BTX_data);
-          delay(100);
-          ESP.restart();
-        }else{
-          delay(1);
-          leds.setLedColorData(0,250,250,250);
-          leds.show();
-        }
-      }
-    }  
-  }else if(CONF=="0"){ 
-    if(INPT=="SERIAL"){
-      serial();
-    }else if(INPT=="CLIENT"){
+  
+  server.begin();
+}
+
+void loop() {
+  if (CONF == "1") {
+    dnsServer.processNextRequest();
+
+    if (conf_btx == 1) {
+      saveConfigFile(BTX_data);
+      conf_btx = 0;
+    }
+
+    if (conf_exit == 1 && conf_btx == 0) {
+      CONF = "0";
+      saveConfigFile(BTX_data);
+      delay(1000);
+      ESP.restart();
+    }
+
+    if (USBPowerIssueFlag == false) {
+      handleLedAnimation();
+    } else if (USBPowerIssueFlag == true) {
+      handleUsbPowerIssue();
+    }
+    
+    handleInterruptProcessingConfig();
+  } else if (CONF == "0") {
+    if (INPT == "SERIAL") {
+      mserial();
+    } else if (INPT == "CLIENT") {
       cliente();
-    }else if(INPT=="LOCAL"){
+    } else if (INPT == "LOCAL") {
       local();
     }
   }
 }
 
-void loop(){}
+void handleLedAnimation() {
+  static int j = 0;
+  leds.setLedColorData(1, leds.Wheel(j));
+  leds.show();
+  delay(9);
+  if (j < 252) {
+    j += 2;
+  } else {
+    j = 0;
+  }
+}
+
+void handleUsbPowerIssue() {
+  INPT = "LOCAL";
+  saveConfigFile(BTX_data);
+  server.on("/USBPowerIssue", HTTP_GET, [](AsyncWebServerRequest * request){
+      request->send(200);
+  });
+  if (CONF == "1") {
+    leds.setLedColorData(0, 255, 255, 0);
+    leds.show();
+    handleLedAnimation();
+  } else if (CONF = "0")  {
+    return;
+  }
+}
+
+void handleInterruptProcessingConfig() {
+  if (interruptFlag) {
+    if (digitalRead(BT1) == 1) {
+      for (int r = 0; r < 2; r++) {
+        for (int lh = 0; lh < 200; lh++) {
+          delay(3);
+          leds.setLedColorData(0, 0, 0, lh);
+          leds.show();
+          delay(3);
+          leds.setLedColorData(1, 0, 0, lh);
+          leds.show();
+        }
+        for (int ll = 200; ll > 0; ll--) {
+          delay(3);
+          leds.setLedColorData(0, 0, 0, ll);
+          leds.show();
+          delay(3);
+          leds.setLedColorData(1, 0, 0, ll);
+          leds.show();
+        }
+      }
+      if (digitalRead(BT1) == 1) {
+        CONF = "0";
+        saveConfigFile(BTX_data);
+        delay(100);
+        ESP.restart();
+      } else {
+        delay(1);
+        leds.setLedColorData(0, 250, 250, 250);
+        leds.show();
+        delay(1);
+      }
+    }
+    interruptFlag = false;
+  }
+}
+
+void handleInterruptProcessingModes() {
+  if (interruptFlag) {
+    if (digitalRead(BT1) == 1) {
+      for (int r = 0; r < 2; r++) {
+        for (int lh = 0; lh < 200; lh++) {
+          delay(3);
+          leds.setLedColorData(0, 0, 0, lh);
+          leds.show();
+          delay(3);
+          leds.setLedColorData(1, 0, 0, lh);
+          leds.show();
+        }
+        for (int ll = 200; ll > 0; ll--) {
+          delay(3);
+          leds.setLedColorData(0, 0, 0, ll);
+          leds.show();
+          delay(3);
+          leds.setLedColorData(1, 0, 0, ll);
+          leds.show();
+        }
+      }
+      if (digitalRead(BT1) == 1) {
+        CONF = "1";
+        saveConfigFile(BTX_data);
+        delay(100);
+        ESP.restart();
+      } else {
+        delay(1);
+        leds.setLedColorData(0, 250, 250, 250);
+        leds.show();
+        delay(1);
+      }
+    }
+    interruptFlag = false;
+  }
+}
+
+void handleInterruptProcessingNstop() {
+  if (interruptFlag) {
+    if(digitalRead(BT1)==1){
+           for(int r=0;r<2;r++){
+              for(int lh=0;lh<200;lh++){
+                delay(3);
+                leds.setLedColorData(0, 0, 0, lh);
+                leds.show();
+                delay(3);
+                leds.setLedColorData(1, 0, 0, lh);
+                leds.show();
+              }
+              for(int ll=200;ll>0;ll--){
+                delay(3);
+                leds.setLedColorData(0, 0, 0, ll);
+                leds.show();
+                delay(3);
+                leds.setLedColorData(1, 0, 0, ll);
+                leds.show();
+              }
+          }
+          if(digitalRead(BT1)==1){
+            CONF="1";
+            saveConfigFile(BTX_data);
+            delay(100);
+            ntrip_c.stop();
+            ESP.restart();
+          }
+          delay(1);
+          leds.setLedColorData(0, 255, 135, 0);
+          leds.show();
+          delay(1);
+       }
+   } interruptFlag = false;
+}
 
 void cliente(){
+  pinMode(BT1, INPUT);
+  attachInterrupt(digitalPinToInterrupt(BT1), handleInterrupt, CHANGE);
+  WiFi.mode(WIFI_STA);
   WiFi.begin(cWIFI, cWPAS);
   int t=0;
   while (WiFi.status() != WL_CONNECTED) {
@@ -1830,32 +1943,7 @@ void cliente(){
       leds.setLedColorData(1, 250, 130, 0);
       leds.show();
       delay(500);
-      if(digitalRead(BT1)==1){
-         for(int r=0;r<2;r++){
-            for(int lh=0;lh<200;lh++){
-              delay(3);
-              leds.setLedColorData(0, 0, 0, lh);
-              leds.show();
-              delay(3);
-              leds.setLedColorData(1, 0, 0, lh);
-              leds.show();
-            }
-            for(int ll=200;ll>0;ll--){
-              delay(3);
-              leds.setLedColorData(0, 0, 0, ll);
-              leds.show();
-              delay(3);
-              leds.setLedColorData(1, 0, 0, ll);
-              leds.show();
-            }
-        }
-        if(digitalRead(BT1)==1){
-          CONF="1";
-          saveConfigFile(BTX_data);
-          delay(100);
-          ESP.restart();
-        }
-      }
+      handleInterruptProcessingModes();
     }
     ESP.restart();
     }else{
@@ -1909,38 +1997,12 @@ void cliente(){
         leds.setLedColorData(1, 100, 0, 0);
         leds.show();
         delay(500);
-        if(digitalRead(BT1)==1){
-           for(int r=0;r<2;r++){
-              for(int lh=0;lh<200;lh++){
-                delay(3);
-                leds.setLedColorData(0, 0, 0, lh);
-                leds.show();
-                delay(3);
-                leds.setLedColorData(1, 0, 0, lh);
-                leds.show();
-              }
-              for(int ll=200;ll>0;ll--){
-                delay(3);
-                leds.setLedColorData(0, 0, 0, ll);
-                leds.show();
-                delay(3);
-                leds.setLedColorData(1, 0, 0, ll);
-                leds.show();
-              }
-          }
-          if(digitalRead(BT1)==1){
-            CONF="1";
-            saveConfigFile(BTX_data);
-            delay(100);
-            ntrip_c.stop();
-            ESP.restart();
-          }
-        }
+        handleInterruptProcessingNstop();
       }
       ntrip_c.stop();
       ESP.restart();
       }
-    } 
+    }
   }else if (ChLoc=="N"){
     if(!ntrip_c.reqRaw(cHOST,iPORT,cMNTP,cUSER,cUPAS,"","")){
       Serial.println("unable to connect with ntrip caster");
@@ -1970,33 +2032,7 @@ void cliente(){
         leds.setLedColorData(1, 100, 0, 0);
         leds.show();
         delay(500);
-        if(digitalRead(BT1)==1){
-           for(int r=0;r<2;r++){
-              for(int lh=0;lh<200;lh++){
-                delay(3);
-                leds.setLedColorData(0, 0, 0, lh);
-                leds.show();
-                delay(3);
-                leds.setLedColorData(1, 0, 0, lh);
-                leds.show();
-              }
-              for(int ll=200;ll>0;ll--){
-                delay(3);
-                leds.setLedColorData(0, 0, 0, ll);
-                leds.show();
-                delay(3);
-                leds.setLedColorData(1, 0, 0, ll);
-                leds.show();
-              }
-          }
-          if(digitalRead(BT1)==1){
-            CONF="1";
-            saveConfigFile(BTX_data);
-            delay(100);
-            ntrip_c.stop();
-            ESP.restart();
-          }
-        }
+        handleInterruptProcessingNstop();
       }
       ntrip_c.stop();
       ESP.restart();
@@ -2030,7 +2066,7 @@ void cliente(){
       }
     }
     atualMillis = millis();
-    if(atualMillis - currentMillis > 15000){
+    if(atualMillis - currentMillis > 30000){
       for(int n=0; n<2; n++){
         delay(1);
         leds.setLedColorData(0, 0, 0, 0);
@@ -2046,37 +2082,7 @@ void cliente(){
     delay(1);
     leds.setLedColorData(1, 0, 0, 0);
     leds.show();
-    if(digitalRead(BT1)==1){
-      for(int r=0;r<2;r++){
-        for(int lh=0;lh<200;lh++){
-          delay(3);
-          leds.setLedColorData(0, 0, 0, lh);
-          leds.show();
-          delay(3);
-          leds.setLedColorData(1, 0, 0, lh);
-          leds.show();
-        }
-        for(int ll=200;ll>0;ll--){
-          delay(3);
-          leds.setLedColorData(0, 0, 0, ll);
-          leds.show();
-          delay(3);
-          leds.setLedColorData(1, 0, 0, ll);
-          leds.show();
-        }
-      }
-      if(digitalRead(BT1)==1){
-        CONF="1";
-        saveConfigFile(BTX_data);
-        delay(100);
-        ntrip_c.stop();
-        ESP.restart();
-      }
-      delay(1);
-      leds.setLedColorData(0, 0, 200, 0);
-      leds.show();
-      delay(1);
-    } 
+    handleInterruptProcessingNstop();
     if(digitalRead(BT2)==1){
       if(TPWR=="H"){
         for(int y=0;y<2;y++){
@@ -2162,7 +2168,11 @@ void cliente(){
   }
 }
 
-void serial(){
+void mserial(){
+  pinMode(BT1, INPUT);
+  attachInterrupt(digitalPinToInterrupt(BT1), handleInterrupt, CHANGE);
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
   leds.setLedColorData(0, 255, 135, 0);
   leds.show();
   delay(1);
@@ -2192,37 +2202,7 @@ void serial(){
     delay(1);
     leds.setLedColorData(1, 0, 0, 0);
     leds.show();
-    if(digitalRead(BT1)==1){
-      for(int r=0;r<2;r++){
-        for(int lh=0;lh<200;lh++){
-          delay(3);
-          leds.setLedColorData(0, 0, 0, lh);
-          leds.show();
-          delay(3);
-          leds.setLedColorData(1, 0, 0, lh);
-          leds.show();
-        }
-        for(int ll=200;ll>0;ll--){
-          delay(3);
-          leds.setLedColorData(0, 0, 0, ll);
-          leds.show();
-          delay(3);
-          leds.setLedColorData(1, 0, 0, ll);
-          leds.show();
-        }
-      }
-      if(digitalRead(BT1)==1){
-        CONF="1";
-        saveConfigFile(BTX_data);
-        delay(100);
-        ntrip_c.stop();
-        ESP.restart();
-      }
-      delay(1);
-      leds.setLedColorData(0, 255, 135, 0);
-      leds.show();
-      delay(1);
-    } 
+    handleInterruptProcessingNstop();
     if(digitalRead(BT2)==1){
       if(TPWR=="H"){
         for(int y=0;y<2;y++){
@@ -2308,32 +2288,40 @@ void serial(){
 }
 
 void local(){
+  pinMode(BT1, INPUT);
+  attachInterrupt(digitalPinToInterrupt(BT1), handleInterrupt, CHANGE); 
+  handleInterruptProcessingModes();
   //WiFi.disconnect();
   Serial.println("modo local");
-    
    WiFi.mode(WIFI_AP); 
    WiFi.softAP(cWIFIL,cWPASL,7,0,10);   //launch the access point
    Serial.println("Wait 100 ms for AP_START...");
    delay(100);
-    //Serial.println("Setting the AP");
+   //Serial.println("Setting the AP");
    IPAddress Ip(192, 168, 0, 1);    //setto IP Access Point same as gateway
-    IPAddress Iplocal(192, 168, 0, 1); 
-    IPAddress NMask(255, 255, 255, 0);
+   IPAddress Iplocal(192, 168, 0, 1); 
+   IPAddress NMask(255, 255, 255, 0);
    WiFi.softAPConfig(Iplocal, Ip, NMask);
    delay(100);
   wifiServer.begin();
+  v5p(LOW);
+  digitalWrite(CONFP,LOW);
   Serial.print("IP: ");Serial.println(WiFi.softAPIP());
-  Serial1.begin(SBAUDL.toInt(), SERIAL_8N1, TXDT, RXDT);
+  Serial1.begin(SBAUDL.toInt(), SERIAL_8N1, RXDT, TXDT);
+  digitalWrite(TXCF,HIGH);
+  delay(100);
   delay(1);
   ext_com(HIGH);
   if(FlagOnly5V==false){
     digitalWrite(POUTEN,HIGH);
-  }
-  v5p(LOW);
-  leds.setLedColorData(0, 200, 0, 0);
+  }  
+  leds.setLedColorData(0, 255, 0, 0);
+  leds.show();
+  leds.setLedColorData(1, 0, 0, 0);
   leds.show();
   Serial.println("esperando por cliente");
   while(true){
+  handleInterruptProcessingModes();
     WiFiClient client = wifiServer.available();
     //Serial.print(".");
     if (client) {
@@ -2341,8 +2329,11 @@ void local(){
    
       while (client.connected()) {
         int counter = 0;
+        handleInterruptProcessingModes();
         
         while (client.available()>0) {
+         handleInterruptProcessingModes();
+         
           cliente_data_ap[counter] = client.read();
           counter++;
           if(client.available()==0){        
@@ -2357,12 +2348,13 @@ void local(){
                           client.println(res_rev1);
                           flag_ok_ap = true;
                           delay(1);
-                          leds.setLedColorData(0, 0, 200, 0);
+                          leds.setLedColorData(0, 0, 255, 0);
                           leds.show();
                   break;
                 case 48:  Serial.println("REV1 + solicita mount point + autentificação correta");// REV1 + solicita mount point + autentificação correta
                           client.println(res_rev1_ST);
                           client.println(scrtbl(cMNTPL,WiFi.softAPIP().toString(),port));
+                          //Serial.println(scrtbl(cMNTPL,WiFi.softAPIP().toString(),port));
                           client.stop();
                   break;
                 case 56:  Serial.println("REV1 + mount point incorreto + autentificação correta");// REV1 + mount point incorreto + autentificação correta
@@ -2379,15 +2371,19 @@ void local(){
                   break;
   
                 case 80:  Serial.println("REV2 + mount point correto + autentificação correta");// REV2 + mount point correto + autentificação correta
-                          client.println(res_rev1);
+                          client.write(res_rev2);
                           flag_ok_ap = true;
+                          //Serial1.begin(SBAUDL.toInt(), SERIAL_8N1, RXDT, TXDT);
+                          //digitalWrite(TXCF,HIGH);
+                          delay(100);
                           delay(1);
-                          leds.setLedColorData(0, 0, 200, 0);
+                          leds.setLedColorData(0, 0, 255, 0);
                           leds.show();
                   break;
                 case 96:  Serial.println("REV2 + solicita mount point + autentificação correta");// REV2 + solicita mount point + autentificação correta
                           client.println(res_rev1_ST);
                           client.println(scrtbl(cMNTPL,WiFi.softAPIP().toString(),port));
+                          //Serial.println(scrtbl(cMNTPL,WiFi.softAPIP().toString(),port));
                           client.stop();
                   break;
                 case 112: Serial.println("REV2 + mount point incorreto + autentificação correta");// REV2 + mount point incorreto + autentificação correta
@@ -2430,25 +2426,25 @@ void local(){
               flag_send_ap=true;
             }
           } 
+          
         }
-          atualMillis_ap = millis();
-          if(atualMillis_ap - currentMillis_ap > 2500 && flag_ok_ap == true && currentMillis_ap != 0 && flag_send_ap==true){
+        atualMillis_ap = millis();
+         if(atualMillis_ap - currentMillis_ap > 2500 && flag_ok_ap == true && currentMillis_ap != 0 && flag_send_ap==true){
             client.stop();
             Serial.println(atualMillis_ap - currentMillis_ap);
             currentMillis_ap = 0;
             atualMillis_ap = 0;
-            Serial.println("Client disconnected");
+            Serial.println("Client disconnected timeout");
             
             long int size = sizeof(cliente_data_ap);
             memset(cliente_data_ap,' ',size*sizeof(char));
             delay(1);
-            leds.setLedColorData(0, 200, 0, 0);
+            leds.setLedColorData(0, 255, 0, 0);
             leds.show();
             delay(200);
             flag_send_ap=false;
             //ESP.restart();
-        }
-  
+        }      
         while (Serial1.available() && flag_ok_ap == true) {
           delay(1);
           leds.setLedColorData(1, 0, 0, 200);
@@ -2461,12 +2457,13 @@ void local(){
           }//buffering
           
           client.write((uint8_t*)ch_ap, readcount_ap);
-          Serial.write((uint8_t*)ch_ap, readcount_ap);
+          //Serial.println(readcount_ap);
           delay(1);
           leds.setLedColorData(1, 0, 0, 0);
           leds.show();
-        }
-      }
+        } 
+      }  
+      delay(300);
       client.stop();
       Serial.println("Client disconnected");
       flag_ok_ap == false;
@@ -2475,9 +2472,10 @@ void local(){
       atualMillis_ap = 0;
       memset(cliente_data_ap,' ',size*sizeof(char));
       delay(1);
-      leds.setLedColorData(1, 200, 0, 0);
+      leds.setLedColorData(0, 255, 0, 0);
       leds.show();
       flag_send_ap=false;
     }
-  }
+  } 
+  handleInterruptProcessingModes();
 }

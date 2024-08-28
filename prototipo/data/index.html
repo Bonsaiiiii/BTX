@@ -271,6 +271,8 @@
       </div>
     </div>
 
+    <div id ="PWRWarning" class="text-danger text-center"> Modo de baixo consumo <br> (Fonte de alimentação não suporta Power Delivery)</div>
+
     <div class="mt-4 mb-4">
       <ul class="nav nav-tabs nav-justified active" role="tablist">
         <li class="nav-item" role="presentation">
@@ -291,7 +293,7 @@
         <span id="serialSim" class="badge bg-success">Modo de operação atual</span>
         <form onsubmit="enviaSerial(); return false;" id="serialform" class="form-group mx-1 form-control-lg"
           action="/serial">
-          
+
 
           <h2 class=" mt-4 text-center">Configurações Serial</h2>
           <p>
@@ -365,7 +367,7 @@
         <span id="clientSim" class="badge bg-success">Modo de operação atual</span>
         <form onsubmit="enviaClient(); return false;" id="clientform" class="form-group mx-1 form-control-lg"
           action="/client">
-          
+
           <h2 class="mt-4 text-center">Configurações Cliente</h2>
           <p>
             Neste modo o BTX>02 recebe correções RTK via Ntrip e transmite via UHF.
@@ -480,11 +482,12 @@
           </div>
           <label class="form-label my-2" for="tempoutc">Horas em UTC: </label>
           <div class="input-group mb-3">
-            <span class="input-group-text">Senha</span>
+            <span class="input-group-text">Tempo UTC</span>
             <input type="text" class="form-control" maxlength="20" id="tempoutc" name="utc" value="">
           </div>
-
           <div class="my-4 text-center">
+            <button onclick="requestLoc(); return false;" form="clientform" class="btn btn-primary" button>Buscar
+              Localização</button>
             <button id="button2" type="submit" form="clientform" class="btn btn-lg btn-primary">Programar
               configurações</button>
           </div>
@@ -497,7 +500,7 @@
         <span id="localSim" class="badge bg-success">Modo de operação atual</span>
         <form onsubmit="enviaLocal(); return false;" id="localform" class="form-group mx-1 form-control-lg"
           action="/local">
-          
+
           <h2 class="mt-4 text-center">Configurações Caster Local</h2>
           <p>
             Neste modo o BTX>02 recebe correções RTK via a porta serial superior e gera uma rede WIFI para que outros
@@ -524,9 +527,9 @@
           <label for="ip_id_l" class="form-label mx-2">Numero de IP do host NTRIP (x.x.x.x)</label>
           <div class="input-group mb-3">
             <span class="input-group-text">HOST IP</span>
-            <input type="text" class="form-control autocomplete" maxlength="15" placeholder="192.168.4.1"
+            <input type="text" class="form-control autocomplete" maxlength="15" value="192.168.4.1"
               pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" id="ip_id_l" name="IP"
-              value="" required>
+              value="" disabled>
           </div>
           <label for="port_id_l" class="form-label mx-2">Numero da porta do host NTRIP</label>
           <div class="input-group mb-3">
@@ -595,10 +598,10 @@
 
   <script>
 
-  function activateTab(activeTabId) {
-    document.getElementById("serialSim").style.display = (activeTabId === "SERIAL") ? "inline-block" : "none";
-    document.getElementById("clientSim").style.display = (activeTabId === "CLIENT") ? "inline-block" : "none";
-    document.getElementById("localSim").style.display = (activeTabId === "LOCAL") ? "inline-block" : "none";
+    function activateTab(activeTabId) {
+      document.getElementById("serialSim").style.display = (activeTabId === "SERIAL") ? "inline-block" : "none";
+      document.getElementById("clientSim").style.display = (activeTabId === "CLIENT") ? "inline-block" : "none";
+      document.getElementById("localSim").style.display = (activeTabId === "LOCAL") ? "inline-block" : "none";
 
       // Desative a aba e o conteúdo atuais
       document.querySelector('.nav-link.active')?.classList.remove('active');
@@ -607,7 +610,7 @@
       // Ative a nova aba e o respectivo conteúdo com base em activeTabId
       document.querySelector(`a[href="#${activeTabId}"]`).classList.add('active');
       document.querySelector(`#${activeTabId}`).classList.add('active', 'show');
-  }
+    }
 
     const xmlhttp_ch = new XMLHttpRequest();
     xmlhttp_ch.onload = function () {
@@ -958,6 +961,66 @@
     function closeModal() {
       location.reload();
     }
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+      var UsbIssue = document.getElementById("PWRWarning");
+      async function checkEndpoint() {
+        try {
+          const response = await fetch('/USBPowerIssue', {
+            method: 'GET',
+            // Optionally add headers or credentials if needed
+          });
+
+          // Check if the response status is OK (status code 200-299)
+          if (response.ok) {
+            // Endpoint is available, execute specific commands here
+            console.log('Endpoint /USBPowerIssue is available.');
+            handleAvailableEndpoint();
+          } else {
+            // Endpoint is not available, run normal operations or handle error
+            console.log('Endpoint /USBPowerIssue is not available.');
+            handleUnavailableEndpoint();
+          }
+        } catch (error) {
+          // Handle any network errors
+          console.error('Error checking endpoint:', error);
+          handleUnavailableEndpoint();
+        }
+      }
+
+      // Function to handle the case where the endpoint is available
+      function handleAvailableEndpoint() {
+        setTabActive('local-tab');
+        activateTab("LOCAL");
+        setTabDisabled('serial-tab', 'SERIAL');
+        setTabDisabled('cliente-tab', 'CLIENT');
+          UsbIssue.style.display = "block";
+      }
+
+      // Function to handle the case where the endpoint is not available
+      function handleUnavailableEndpoint() {
+        UsbIssue.style.display = "none";
+      }
+
+      function setTabActive(tabId) {
+        document.querySelectorAll('.nav-link').forEach(tab => {
+          tab.classList.remove('active');
+        });
+        document.querySelector(`#${tabId}`).classList.add('active');
+      }
+
+      function setTabDisabled(tabId, contentId) {
+        document.querySelector(`#${tabId}`).classList.add('disabled');
+        document.querySelector(`#${contentId}`).style.display = 'none';
+      }
+
+      function setTabEnabled(tabId, contentId) {
+        document.querySelector(`#${tabId}`).classList.remove('disabled');
+        document.querySelector(`#${contentId}`).style.display = 'block';
+      }
+
+      checkEndpoint();
+    });
 
     $(function () {
       // Function to get stored data for a specific input
