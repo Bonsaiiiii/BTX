@@ -14,7 +14,7 @@
 
 #define BTX_data  "/btx_conf.json"
 
-#define size_btx  2048
+#define size_btx  5048
 
 #define CF3     4
 #define CF2     5
@@ -64,6 +64,7 @@ bool interruptFlag = false;
 bool USBPowerIssueFlag = false;
 int teste;
 String MAC;
+int clientmodo = 0;
 
 //var channels
 String CTX0, CTX1, CTX2, CTX3, CTX4, CTX5, CTX6, CTX7, CTX8, CTX9;
@@ -78,16 +79,16 @@ String CHTX, CHRX, SBUD, TPWR, TPRT;
 char cCHTX[2]; char cCHRX[2]; char cSBUD[7]; char cTPWR[2]; char cTPRT[10];
 
 //var cliente
-String CHTXC, TPWRC, SBUDC, TPRTC, WIFI, WPAS, HOST, PORT, MNTP, USER, UPAS;
+String CHTXC, TPWRC, SBUDC, TPRTC, WIFI, WPAS, HOST, PORT, MNTP, USER, UPAS, ERRC;
 String Latitude, Longitude, Precisao, Altitude, Tempoutc, ChLoc;
 
-char cCHTXC[2]; char cTPWRC[2]; char cSBUDC[7]; char cTPRTC[10]; char cWIFI[32]; char cWPAS[64]; char cHOST[16]; char cPORT[6]; char cMNTP[81]; char cUSER[31]; char cUPAS[31]; 
+char cCHTXC[2]; char cTPWRC[2]; char cSBUDC[7]; char cTPRTC[10]; char cWIFI[32]; char cWPAS[64]; char cHOST[16]; char cPORT[6]; char cMNTP[81]; char cUSER[41]; char cUPAS[31]; char cERRC[2];
 char cLatitude[12]; char cLongitude[12]; char cPrecisao[20]; char cAltitude[20]; char cTempoutc[7], cChLoc[2];
 
 //var caster
 String SBAUDL, WIFIL, WPASL, HOSTL, PORTL, MNTPL, USERL, UPASL;
 
-char cSBAUDL[7]; char cWIFIL[32]; char cWPASL[64]; char cHOSTL[16]; char cPORTL[6]; char cMNTPL[81]; char cUSERL[31]; char cUPASL[31];
+char cSBAUDL[7]; char cWIFIL[32]; char cWPASL[64]; char cHOSTL[16]; char cPORTL[6]; char cMNTPL[81]; char cUSERL[41]; char cUPASL[31];
 
 //var adv
 String INPT, FLOW, FUPP, MODE, READ, CONF;  
@@ -807,7 +808,7 @@ String searchbaud(){
 }
 
 int programall(){
-  if(INPT="SERIAL"){
+  if(INPT=="SERIAL"){
     for(int e=0;e<=10;e++){
       switch(e){
         case 0: 
@@ -898,7 +899,7 @@ int programall(){
           break;
       } 
     }
-  }else if(INPT="CLIENT"){
+  }else if(INPT=="CLIENT"){
     for(int e=0;e<=10;e++){
       switch(e){
         case 0: 
@@ -1286,6 +1287,7 @@ bool loaddata(String filename){
               MNTP = strcpy(cMNTP, cliente["MNTP"]);
               USER = strcpy(cUSER, cliente["USER"]);
               UPAS = strcpy(cUPAS, cliente["UPAS"]);
+              ERRC = strcpy(cERRC, cliente["ERRC"]);
               ChLoc = strcpy(cChLoc, cliente["chLoc"]);
               Latitude = strcpy(cLatitude, cliente["latitude"]);
               Longitude = strcpy(cLongitude, cliente["longitude"]);
@@ -1320,8 +1322,13 @@ bool loaddata(String filename){
           }else{
               Serial.println("Failed to load btx_conf.json");
           }
+        }else{
+          Serial.println("Failed to load btx_conf.json");
         }
+      }else{
+        Serial.println("filename dont match");
       }
+      
     }
   }else{
     Serial.println("Failed to mount FS");
@@ -1372,6 +1379,7 @@ void saveConfigFile(String filename){
     cliente["MNTP"] = MNTP.c_str();
     cliente["USER"] = USER.c_str();
     cliente["UPAS"] = UPAS.c_str();
+    cliente["ERRC"] = ERRC.c_str();
     cliente["chLoc"] = ChLoc.c_str();
     cliente["latitude"] = Latitude.c_str();
     cliente["longitude"] = Longitude.c_str();
@@ -1411,7 +1419,7 @@ void saveConfigFile(String filename){
 }
 
 String CriaGGA(String lati, String logi, String alti, String tutc){
-  String p = "GNGGA,";
+  String p = "GPGGA,";
   String p1 = "";
   String p2 = "";
   String newLati, NorS, EorW, newLong;
@@ -1480,6 +1488,8 @@ void setup(){
   init_gpio();
   ext_com(LOW);
   leds.begin();
+  pinMode(BT1, INPUT);
+  attachInterrupt(digitalPinToInterrupt(BT1), handleInterrupt, CHANGE);
 
   for(int l = 0; l < 255; l++) {
     leds.setLedColorData(0, l, l, l);
@@ -1487,30 +1497,55 @@ void setup(){
     delay(4);
   }
 
+  if (!SPIFFS.begin(true)) {
+    handleSpiFFSError();
+  }
+  loaddata(BTX_data);
+  Serial.print("USER= ");Serial.println(USER);
+  Serial.print("PASS= ");Serial.println(UPAS);
+  Serial.print("cPASS= ");Serial.println(cUPAS);
+  Serial.print("CONF= ");Serial.println(CONF);
   usbpd(12);
   delay(500);
 
   if (digitalRead(PDPG) == HIGH) {
     USBPowerIssueFlag = true;
+    delay(1);
+    leds.setLedColorData(0, 255, 255, 0);
+    leds.show();
+    delay(100);  
+    INPT = "LOCAL";
+    saveConfigFile(BTX_data);
+    server.on("/USBPowerIssue", HTTP_GET, [](AsyncWebServerRequest * request){  
+        request->send(200);
+      });
+    Serial.println("modo baixo consumo");
   }
 
-  if (!SPIFFS.begin(true)) {
-    handleSpiFFSError();
+  
+  if(USBPowerIssueFlag == false){
+    Serial.println("inicia radio");
+    init1 = du2005begin();
+    Serial.print("init1= ");Serial.println(init1);
+    if (init1 == 0) {
+      handleRadioError();
+    }
   }
-
-  loaddata(BTX_data);
-  Serial.println("inicia radio");
-  init1 = du2005begin();
-  if (init1 == 0) {
-    handleRadioError();
-  }
-
+  Serial.print("CONF= ");Serial.println(CONF);
   if (CONF == "1") {
     setupWiFiAndServer();
-  }
+  }else if (CONF == "0") {
+    if (INPT == "SERIAL") {
+      mserial();
+    } else if (INPT == "CLIENT") {
+      cliente();
+    } else if (INPT == "LOCAL") {
+      local();
+    }
+  }   
+}
 
-  pinMode(BT1, INPUT);
-  attachInterrupt(digitalPinToInterrupt(BT1), handleInterrupt, CHANGE);    
+void loop(){
 }
 
 void handleSpiFFSError() {
@@ -1741,16 +1776,22 @@ void setupWiFiAndServer() {
       conf_exit=1;
       request->send(200);
     });
+    server.on("/ERRC", HTTP_POST, [](AsyncWebServerRequest *request){
+      ERRC = "0";
+      Serial.println(ERRC);
+      saveConfigFile(BTX_data);
+      request->send(200);
+    });
     server.on("/apprequest", HTTP_POST, [](AsyncWebServerRequest *request){
       MAC = WiFi.softAPmacAddress();
       request->send(200, "application/json", MAC);
     });
+    
+    
   
   server.begin();
-}
-
-void loop() {
-  if (CONF == "1") {
+  Serial.println("setup concluido");
+  while(true){
     dnsServer.processNextRequest();
 
     if (conf_btx == 1) {
@@ -1764,22 +1805,9 @@ void loop() {
       delay(1000);
       ESP.restart();
     }
-
-    if (USBPowerIssueFlag == false) {
-      handleLedAnimation();
-    } else if (USBPowerIssueFlag == true) {
-      handleUsbPowerIssue();
-    }
+    handleLedAnimation();
     
     handleInterruptProcessingConfig();
-  } else if (CONF == "0") {
-    if (INPT == "SERIAL") {
-      mserial();
-    } else if (INPT == "CLIENT") {
-      cliente();
-    } else if (INPT == "LOCAL") {
-      local();
-    }
   }
 }
 
@@ -1795,20 +1823,6 @@ void handleLedAnimation() {
   }
 }
 
-void handleUsbPowerIssue() {
-  INPT = "LOCAL";
-  saveConfigFile(BTX_data);
-  server.on("/USBPowerIssue", HTTP_GET, [](AsyncWebServerRequest * request){
-      request->send(200);
-  });
-  if (CONF == "1") {
-    leds.setLedColorData(0, 255, 255, 0);
-    leds.show();
-    handleLedAnimation();
-  } else if (CONF = "0")  {
-    return;
-  }
-}
 
 void handleInterruptProcessingConfig() {
   if (interruptFlag) {
@@ -1912,13 +1926,146 @@ void handleInterruptProcessingNstop() {
             ntrip_c.stop();
             ESP.restart();
           }
-          delay(1);
-          leds.setLedColorData(0, 255, 135, 0);
-          leds.show();
-          delay(1);
+          if (clientmodo == 0) {
+            delay(1);
+            leds.setLedColorData(0, 255, 135, 0);
+            leds.show();
+            delay(1);
+          }
+          else if (clientmodo == 1) {
+            delay(1);
+            leds.setLedColorData(0, 0, 100, 0);
+            leds.show();
+            delay(1);
+          }
        }
    } interruptFlag = false;
 }
+
+void erroLedNtrip(int erro){
+  switch(erro){
+    case 1:
+      for(int wait=0;wait<10;wait++){
+        delay(1);
+        leds.setLedColorData(0, 0, 100, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(0, 0, 100, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 0);
+        leds.show();
+        delay(500);
+        leds.setLedColorData(0, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 100, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(0, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 100, 0);
+        leds.show();
+        delay(500);
+      }
+    break;
+    case 2:
+      for(int wait=0;wait<10;wait++){
+        delay(1);
+        leds.setLedColorData(0, 0, 0, 200);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(0, 0, 0, 200);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 0);
+        leds.show();
+        delay(500);
+        leds.setLedColorData(0, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 200);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(0, 0, 0, 0); 
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 200);
+        leds.show();
+        delay(500);
+        handleInterruptProcessingNstop();
+      }
+    break;
+    case 3:
+      for(int wait=0;wait<10;wait++){
+        delay(1);
+        leds.setLedColorData(0, 100, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(0, 100, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 0);
+        leds.show();
+        delay(500);
+        leds.setLedColorData(0, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 100, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(0, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 100, 0, 0);
+        leds.show();
+        delay(500);
+      }
+    break;
+    case 5:
+      for(int wait=0;wait<10;wait++){
+        delay(1);
+        leds.setLedColorData(0, 100, 100, 100);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(0, 100, 100, 100);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 0);
+        leds.show();
+        delay(500);
+        leds.setLedColorData(0, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 100, 100, 100);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(0, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 100, 100, 100);
+        leds.show();
+        delay(500);
+        handleInterruptProcessingNstop();
+      }
+    break;
+  }
+}
+
+
 
 void cliente(){
   pinMode(BT1, INPUT);
@@ -1953,89 +2100,128 @@ void cliente(){
   Serial.println(WiFi.localIP());
   int iPORT = strtol(PORT.c_str(), NULL, 0);
   Serial.println("Requesting SourceTable.");
-  if(ntrip_c.reqSrcTbl(cHOST,iPORT)){
-    char buffer[512];
-    delay(1000);
-    while(ntrip_c.available()){
-      ntrip_c.readLine(buffer,sizeof(buffer));
-      Serial.print(buffer); 
-    }
-  }else{
-    Serial.println("SourceTable request error");
+  switch(ntrip_c.reqSrcTbl(cHOST,iPORT)){
+    case 1: Serial.print("Não foi possivel conectar ao ");Serial.print(cHOST);Serial.print(":");Serial.println(iPORT);
+            Serial.println("SourceTable request error");
+    break;
+    case 2: Serial.println("Não ouve resposta do servidor ou resposta nao compreendida");
+            Serial.println("SourceTable request error");
+    break;
+    case 4: Serial.print("tudo ok!");
+            char buffer[512];
+            delay(1000);
+            while(ntrip_c.available()){
+              ntrip_c.readLine(buffer,sizeof(buffer));
+              Serial.print(buffer); 
+            }
+            Serial.println("Requesting SourceTable is OK\n");
+    break;
+    case 5: Serial.println("Servidor não responde");
+            Serial.println("SourceTable request error");
+    break;
   }
-  Serial.print("Requesting SourceTable is OK\n");
   ntrip_c.stop(); //Need to call "stop" function for next request.
   Serial.println("Requesting MountPoint's Raw data");     
   if(ChLoc=="S"){
     if(Latitude!=""&&Longitude!=""&&Altitude!=""&&Tempoutc!=""){
       String nmeaGGA = CriaGGA(Latitude,Longitude,Altitude,Tempoutc);
-      if(!ntrip_c.reqRaw(cHOST,iPORT,cMNTP,cUSER,cUPAS,nmeaGGA,ChLoc)){
-      Serial.println("unable to connect with ntrip caster");
-      delay(100);
-      for(int wait=0;wait<10;wait++){
-        leds.setLedColorData(0, 100, 0, 0);
-        leds.show();
-        delay(1);
-        leds.setLedColorData(1, 0, 0, 0);
-        leds.show();
-        delay(1);
-        leds.setLedColorData(0, 100, 0, 0);
-        leds.show();
-        delay(1);
-        leds.setLedColorData(1, 0, 0, 0);
-        leds.show();
-        delay(500);
-        leds.setLedColorData(0, 0, 0, 0);
-        leds.show();
-        delay(1);
-        leds.setLedColorData(1, 100, 0, 0);
-        leds.show();
-        delay(1);
-        leds.setLedColorData(0, 0, 0, 0);
-        leds.show();
-        delay(1);
-        leds.setLedColorData(1, 100, 0, 0);
-        leds.show();
-        delay(500);
-        handleInterruptProcessingNstop();
-      }
-      ntrip_c.stop();
-      ESP.restart();
+      switch(ntrip_c.reqRaw(cHOST,iPORT,cMNTP,cUSER,cUPAS,nmeaGGA,ChLoc)){
+        case 1: Serial.print("Não foi possivel conectar ao ");Serial.print(cHOST);Serial.print(":");Serial.println(iPORT);
+                erroLedNtrip(1);
+                clientmodo = 0;
+                ERRC = "1";
+                Serial.print("Valor de erro é: ");Serial.println(ERRC);
+                CONF="1";
+                saveConfigFile(BTX_data);
+                delay(100);
+                ntrip_c.stop();
+                ESP.restart();
+        break;
+        case 2: Serial.println("Não ouve resposta do servidor ou resposta nao compreendida");
+                erroLedNtrip(2);
+                clientmodo = 0;
+                ERRC = "2";
+                Serial.print("Valor de erro é: ");Serial.println(ERRC);
+                saveConfigFile(BTX_data);
+                delay(100);
+                ntrip_c.stop();
+                ESP.restart();
+        break;
+        case 3: Serial.print("Usuario ou senha invalidos: ");Serial.print(cUSER);Serial.print(":");Serial.println(cUPAS);
+                Serial.println("unable to connect with ntrip caster");
+                erroLedNtrip(3);
+                clientmodo = 0;
+                ERRC = "3";
+                Serial.print("Valor de erro é: ");Serial.println(ERRC);
+                CONF="1";
+                saveConfigFile(BTX_data);
+                delay(100);
+                ntrip_c.stop();
+                ESP.restart();
+        break;
+        case 4: Serial.print("tudo ok!");
+                clientmodo = 1;
+        break;
+        case 5: Serial.println("Servidor não responde");
+                erroLedNtrip(5);
+                clientmodo = 0;
+                ERRC = "5";
+                Serial.print("Valor de erro é: ");Serial.println(ERRC);
+                saveConfigFile(BTX_data);
+                delay(100);
+                ntrip_c.stop();
+                ESP.restart();
+        break;
       }
     }
   }else if (ChLoc=="N"){
-    if(!ntrip_c.reqRaw(cHOST,iPORT,cMNTP,cUSER,cUPAS,"","")){
-      Serial.println("unable to connect with ntrip caster");
-      delay(100);
-      for(int wait=0;wait<10;wait++){
-        leds.setLedColorData(0, 100, 0, 0);
-        leds.show();
-        delay(1);
-        leds.setLedColorData(1, 0, 0, 0);
-        leds.show();
-        delay(1);
-        leds.setLedColorData(0, 100, 0, 0);
-        leds.show();
-        delay(1);
-        leds.setLedColorData(1, 0, 0, 0);
-        leds.show();
-        delay(500);
-        leds.setLedColorData(0, 0, 0, 0);
-        leds.show();
-        delay(1);
-        leds.setLedColorData(1, 100, 0, 0);
-        leds.show();
-        delay(1);
-        leds.setLedColorData(0, 0, 0, 0);
-        leds.show();
-        delay(1);
-        leds.setLedColorData(1, 100, 0, 0);
-        leds.show();
-        delay(500);
-        handleInterruptProcessingNstop();
-      }
-      ntrip_c.stop();
-      ESP.restart();
+    switch(ntrip_c.reqRaw(cHOST,iPORT,cMNTP,cUSER,cUPAS,"","")){
+      case 1: Serial.print("Não foi possivel conectar ao ");Serial.print(cHOST);Serial.print(":");Serial.println(iPORT);
+              erroLedNtrip(1);
+              clientmodo = 0;
+              ERRC = "1";
+              Serial.print("Valor de erro é: ");Serial.println(ERRC);
+              CONF="1";
+              saveConfigFile(BTX_data);
+              delay(100);
+              ntrip_c.stop();
+              ESP.restart();
+      break;
+      case 2: Serial.println("Não ouve resposta do servidor ou resposta nao compreendida");
+              erroLedNtrip(2);
+              clientmodo = 0;
+              ERRC = "2";
+              Serial.print("Valor de erro é: ");Serial.println(ERRC);
+              saveConfigFile(BTX_data);
+              delay(100);
+              ntrip_c.stop();
+              ESP.restart();
+      break;
+      case 3: Serial.print("Usuario ou senha invalidos: ");Serial.print(cUSER);Serial.print(":");Serial.println(cUPAS);
+              Serial.println("unable to connect with ntrip caster");
+              erroLedNtrip(3);
+              clientmodo = 0;
+              ERRC = "3";
+              Serial.print("Valor de erro é: ");Serial.println(ERRC);
+              CONF="1";
+              saveConfigFile(BTX_data);
+              delay(100);
+              ntrip_c.stop();
+              ESP.restart();
+      break;
+      case 4: Serial.print("tudo ok!");
+              clientmodo = 1;
+      break;
+      case 5: Serial.println("Servidor não responde");
+              erroLedNtrip(5);
+              clientmodo = 0;
+              ERRC = "5";
+              Serial.print("Valor de erro é: ");Serial.println(ERRC);
+              saveConfigFile(BTX_data);
+              delay(100);
+              ntrip_c.stop();
+              ESP.restart();
+      break;
     }
   }
   leds.setLedColorData(0, 0, 200, 0);
@@ -2044,30 +2230,38 @@ void cliente(){
   input = 1;
   digitalWrite(CONFP,HIGH);
   while(true){
+    //Serial.println("while 1");
     if(ntrip_c.available()){
       currentMillis = millis();
       delay(1);
       leds.setLedColorData(1, 0, 0, 200);
       leds.show();
-      while(ntrip_c.available()){     
+      sai1:
+      sai2:
+      while(ntrip_c.available()){
+        //Serial.println("while 2"); 
         readcount = ntrip_c.readBytes(ch0, ntrip_c.available());
         //readcount = ntrip_c.readLine(ch0, 2500);
         Serial1.write(ch0, readcount);
-        //Serial.println(ch0);
+        Serial.println(ch0);
         if(ntrip_c.available()==0){
+          //Serial.println("if 1");
           Serial.println(readcount);
           readcount = 0;
-          return;
+          goto sai1;
         }
         if(digitalRead(BT1)==1){
+          //Serial.println("if 2");
           readcount = 0;
-          return;
+          goto sai2;
         }
       }
+      
     }
     atualMillis = millis();
     if(atualMillis - currentMillis > 30000){
       for(int n=0; n<2; n++){
+        Serial.println("milis");
         delay(1);
         leds.setLedColorData(0, 0, 0, 0);
         leds.show();

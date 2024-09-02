@@ -49,6 +49,7 @@
         "MNTP": "IFSC0",
         "USER": "SNIP",
         "UPAS": "1234",
+        "ERRC": "0",
         "chLoc": "S",
         "latitude": "",
         "longitude": "",

@@ -9,10 +9,28 @@
   <script src="/jquery.min.js"></script>
   <script src="/bootstrap.min.js"></script>
   <script src="/jquery-ui.js"></script>
-  <script src="autocomplete.js"></script>
 </head>
 
 <body class="mx-auto">
+
+  <div class="modal" id="modalErrc" data-bs-keyboard="false" data-bs-backdrop="static">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="bolded">
+            <h5 class="modal-title text-center" id="modalErrcTitle"><strong> title </strong></h5>
+          </span>
+        </div>
+        <div class="modal-body" id="modalErrcBody">
+          <p>Modal body text goes here.</p>
+        </div>
+        <div class="modal-footer">
+          <button onclick="closeERRC();" type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="main-content">
     <div class="my-4">
       <h1 class="text-center">
@@ -271,7 +289,8 @@
       </div>
     </div>
 
-    <div id ="PWRWarning" class="text-danger text-center"> Modo de baixo consumo <br> (Fonte de alimentação não suporta Power Delivery)</div>
+    <div id="PWRWarning" class="text-danger text-center"> Modo de baixo consumo <br> (Fonte de alimentação não suporta
+      Power Delivery)</div>
 
     <div class="mt-4 mb-4">
       <ul class="nav nav-tabs nav-justified active" role="tablist">
@@ -434,20 +453,20 @@
             caracteres)</label>
           <div class="input-group mb-3">
             <span class="input-group-text">Mount point</span>
-            <input type="text" class="form-control autocomplete" maxlength="20" id="mountpt_id" name="mountpt" value=""
+            <input type="text" class="form-control autocomplete" maxlength="80" id="mountpt_id" name="mountpt" value=""
               required>
           </div>
-          <label for="user_id" class="form-label mx-2">Nome de usuario do host NTRIP (maximo de 30 caracteres)</label>
+          <label for="user_id" class="form-label mx-2">Nome de usuario do host NTRIP (maximo de 40 caracteres)</label>
           <div class="input-group mb-3">
             <span class="input-group-text">Usuario</span>
-            <input type="text" class="form-control autocomplete" maxlength="20" id="user_id" name="user" value=""
+            <input type="text" class="form-control autocomplete" maxlength="40" id="user_id" name="user" value=""
               required>
           </div>
           <label for="userpass_id" class="form-label mx-2">Senha de usuario do host NTRIP (maximo de 30
             caracteres)</label>
           <div class="input-group mb-3">
             <span class="input-group-text">Senha</span>
-            <input type="text" class="form-control autocomplete" maxlength="20" id="userpass_id" name="userpass"
+            <input type="text" class="form-control autocomplete" maxlength="30" id="userpass_id" name="userpass"
               value="" required>
           </div>
 
@@ -693,6 +712,7 @@
       document.getElementById("altitude").value = json.client[0].altitude;
       document.getElementById("check_localizacao").value = json.client[0].chLoc;
       document.getElementById("tempoutc").value = json.client[0].tempoutc;
+      ERRC = json.client[0].ERRC;
       //local
       document.getElementById("sbaud_id_l").value = json.local[0].SBAUDL;
       document.getElementById("wifi_id_l").value = json.local[0].WIFIL;
@@ -709,6 +729,8 @@
       document.getElementById("read_id").value = json.adv[0].READ;
 
       activateTab(json.adv[0].INPT);
+      console.log("o número do erro é " + ERRC);
+      setModalContent(ERRC);
     };
     xmlhttp_ch.open("GET", "btx_conf.json");
     xmlhttp_ch.send();
@@ -958,8 +980,67 @@
       xhr.send();
     }
 
+    function closeERRC() // função, que quando clicar no botão, será enviado uma requisição POST para o server
+    {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", '/ERRC', true); // inicializa uma nova requisição, ou reinicializa uma requisição já existente.
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // define o valor do cabeçalho de uma requisição HTTP
+
+      xhr.onreadystatechange = function () {
+      };
+      xhr.send();
+    }
+
+    function sendErrc() {
+      var xhr = new XMLHttpRequest();
+      XHR.open("POST", "/ERRC", true);
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+      xhr.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          // Typical action to be performed when the document is ready:
+          alert("Salvo com sucesso!");
+        } else if (this.readyState == 4 && this.status != 200) {
+          alert("Requisição não foi enviada, pois houve alguma falha");
+        }
+      };
+      xhr.send();
+    }
+
     function closeModal() {
       location.reload();
+    }
+
+    function setModalContent(ERRC) {
+      var title = '';
+      var bodyText = '';
+
+      switch (ERRC) {
+        case "0":
+          return;
+        case "1":
+          title = 'ERRO';
+          bodyText = 'HOST/PORT Incorreto, verifique as credenciais e tente novamente';
+          break;
+        case "2":
+          title = 'ERRO';
+          bodyText = 'Resposta não compreendida';
+          break;
+        case "3":
+          title = 'ERRO';
+          bodyText = 'Autentificação incorreta, verifique as credenciais e teente novamente';
+          break;
+        case "5":
+          title = 'ERRO';
+          bodyText = 'Requisição demorou mais que o esperado';
+          break;
+      }
+
+      document.getElementById('modalErrcTitle').textContent = title;
+      document.getElementById('modalErrcBody').innerHTML = `<p>${bodyText}</p>`;
+
+      var myModal = new bootstrap.Modal(document.getElementById('modalErrc'));
+      myModal.show();
     }
 
     document.addEventListener('DOMContentLoaded', (event) => {
@@ -994,7 +1075,7 @@
         activateTab("LOCAL");
         setTabDisabled('serial-tab', 'SERIAL');
         setTabDisabled('cliente-tab', 'CLIENT');
-          UsbIssue.style.display = "block";
+        UsbIssue.style.display = "block";
       }
 
       // Function to handle the case where the endpoint is not available
