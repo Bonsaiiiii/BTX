@@ -25,7 +25,25 @@
           <p>Modal body text goes here.</p>
         </div>
         <div class="modal-footer">
-          <button onclick="closeERRC();" type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+          <button onclick="closeERR();" type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modalErrw" data-bs-keyboard="false" data-bs-backdrop="static">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="bolded">
+            <h5 class="modal-title text-center" id="modalErrwTitle"><strong> title </strong></h5>
+          </span>
+        </div>
+        <div class="modal-body" id="modalErrwBody">
+          <p>Modal body text goes here.</p>
+        </div>
+        <div class="modal-footer">
+          <button onclick="closeERR();" type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
         </div>
       </div>
     </div>
@@ -289,8 +307,8 @@
       </div>
     </div>
 
-    <div id="PWRWarning" class="text-danger text-center"> Modo de baixo consumo <br> (Fonte de alimentação não suporta
-      Power Delivery)</div>
+    <div id="PWRWarning" style="display: none;" class="text-danger text-center"> Modo de baixo consumo <br> (Fonte de alimentação não suporta
+      Power Delivery) <br> Aviso: No modo Baixo consumo apenas o modo Caster Local está disponível, outros modos apenas podem ser configurados.</div>
 
     <div class="mt-4 mb-4">
       <ul class="nav nav-tabs nav-justified active" role="tablist">
@@ -617,6 +635,8 @@
 
   <script>
 
+    var INPT;
+
     function activateTab(activeTabId) {
       document.getElementById("serialSim").style.display = (activeTabId === "SERIAL") ? "inline-block" : "none";
       document.getElementById("clientSim").style.display = (activeTabId === "CLIENT") ? "inline-block" : "none";
@@ -712,7 +732,6 @@
       document.getElementById("altitude").value = json.client[0].altitude;
       document.getElementById("check_localizacao").value = json.client[0].chLoc;
       document.getElementById("tempoutc").value = json.client[0].tempoutc;
-      ERRC = json.client[0].ERRC;
       //local
       document.getElementById("sbaud_id_l").value = json.local[0].SBAUDL;
       document.getElementById("wifi_id_l").value = json.local[0].WIFIL;
@@ -727,10 +746,20 @@
       document.getElementById("fupp_id").value = json.adv[0].FUPP;
       document.getElementById("modo_id").value = json.adv[0].MODE;
       document.getElementById("read_id").value = json.adv[0].READ;
+      INPT = json.adv[0].INPT;
+      //erro
+      ERRC = json.erro[0].ERRC;
+      EBC = json.erro[0].EBC;
+      ERRW = json.erro[0].ERRW;
 
-      activateTab(json.adv[0].INPT);
-      console.log("o número do erro é " + ERRC);
+      if (EBC!="S") {
+        activateTab(INPT);
+      } else {
+        activateTab("LOCAL");
+      }
+      console.log("o número do erro é " + ERRW);
       setModalContent(ERRC);
+      setModalContent2(ERRW);
     };
     xmlhttp_ch.open("GET", "btx_conf.json");
     xmlhttp_ch.send();
@@ -980,29 +1009,13 @@
       xhr.send();
     }
 
-    function closeERRC() // função, que quando clicar no botão, será enviado uma requisição POST para o server
+    function closeERR() // função, que quando clicar no botão, será enviado uma requisição POST para o server
     {
       var xhr = new XMLHttpRequest();
-      xhr.open("POST", '/ERRC', true); // inicializa uma nova requisição, ou reinicializa uma requisição já existente.
+      xhr.open("POST", '/ERR', true); // inicializa uma nova requisição, ou reinicializa uma requisição já existente.
       xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // define o valor do cabeçalho de uma requisição HTTP
 
       xhr.onreadystatechange = function () {
-      };
-      xhr.send();
-    }
-
-    function sendErrc() {
-      var xhr = new XMLHttpRequest();
-      XHR.open("POST", "/ERRC", true);
-      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-      xhr.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-          // Typical action to be performed when the document is ready:
-          alert("Salvo com sucesso!");
-        } else if (this.readyState == 4 && this.status != 200) {
-          alert("Requisição não foi enviada, pois houve alguma falha");
-        }
       };
       xhr.send();
     }
@@ -1034,12 +1047,40 @@
           title = 'ERRO';
           bodyText = 'Requisição demorou mais que o esperado';
           break;
+        case "6":
+          title = 'ERRO';
+          bodyText = 'Mount Point incorreto, verifique as credenciais e tente novamente';
+          break;
       }
 
       document.getElementById('modalErrcTitle').textContent = title;
       document.getElementById('modalErrcBody').innerHTML = `<p>${bodyText}</p>`;
 
       var myModal = new bootstrap.Modal(document.getElementById('modalErrc'));
+      myModal.show();
+    }
+
+    function setModalContent2(ERRW) {
+      var title = '';
+      var bodyText = '';
+
+      switch (ERRW) {
+        case "0":
+          return;
+        case "1":
+          title = 'ERRO';
+          bodyText = 'Rede não encontrada, verifique as credenciais da rede WiFi e tente novamente';
+          break;
+        case "2":
+          title = 'ERRO';
+          bodyText = 'Senha da rede incorreta, verifique a senha WiFi e tente novamente';
+          break;
+      }
+
+      document.getElementById('modalErrwTitle').textContent = title;
+      document.getElementById('modalErrwBody').innerHTML = `<p>${bodyText}</p>`;
+
+      var myModal = new bootstrap.Modal(document.getElementById('modalErrw'));
       myModal.show();
     }
 
@@ -1073,13 +1114,12 @@
       function handleAvailableEndpoint() {
         setTabActive('local-tab');
         activateTab("LOCAL");
-        setTabDisabled('serial-tab', 'SERIAL');
-        setTabDisabled('cliente-tab', 'CLIENT');
         UsbIssue.style.display = "block";
       }
 
       // Function to handle the case where the endpoint is not available
       function handleUnavailableEndpoint() {
+        activateTab(INPT);
         UsbIssue.style.display = "none";
       }
 

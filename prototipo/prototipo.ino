@@ -62,6 +62,8 @@ char cliente_data_ap[1024];
 
 bool interruptFlag = false;
 bool USBPowerIssueFlag = false;
+bool flag_erro = false;
+int estado = 0;
 int teste;
 String MAC;
 int clientmodo = 0;
@@ -79,10 +81,10 @@ String CHTX, CHRX, SBUD, TPWR, TPRT;
 char cCHTX[2]; char cCHRX[2]; char cSBUD[7]; char cTPWR[2]; char cTPRT[10];
 
 //var cliente
-String CHTXC, TPWRC, SBUDC, TPRTC, WIFI, WPAS, HOST, PORT, MNTP, USER, UPAS, ERRC;
+String CHTXC, TPWRC, SBUDC, TPRTC, WIFI, WPAS, HOST, PORT, MNTP, USER, UPAS;
 String Latitude, Longitude, Precisao, Altitude, Tempoutc, ChLoc;
 
-char cCHTXC[2]; char cTPWRC[2]; char cSBUDC[7]; char cTPRTC[10]; char cWIFI[32]; char cWPAS[64]; char cHOST[16]; char cPORT[6]; char cMNTP[81]; char cUSER[41]; char cUPAS[31]; char cERRC[2];
+char cCHTXC[2]; char cTPWRC[2]; char cSBUDC[7]; char cTPRTC[10]; char cWIFI[32]; char cWPAS[64]; char cHOST[16]; char cPORT[6]; char cMNTP[81]; char cUSER[41]; char cUPAS[31];
 char cLatitude[12]; char cLongitude[12]; char cPrecisao[20]; char cAltitude[20]; char cTempoutc[7], cChLoc[2];
 
 //var caster
@@ -99,6 +101,11 @@ char cINPT[7]; char cFLOW[4]; char cFUPP[4]; char cMODE[7]; char cREAD[4]; char 
 String SERL, SREV, MODC, FIRC;
 
 char cSERL[13]; char cSREV[11]; char cMODC[10]; char cFIRC[10];
+
+//var erro
+String EBC, ERRC, ERRW;
+
+char cEBC[2]; char cERRC[2]; char cERRW[2]; 
 
 String commands[11]={"TX","RX","PWR","SBAUD","PRT","SREV","SER","FLOW","FUPP","MODE"};
 String TXR, RXR;
@@ -903,47 +910,47 @@ int programall(){
     for(int e=0;e<=10;e++){
       switch(e){
         case 0: 
-          if(CHTX=="0"){
+          if(CHTXC=="0"){
             du2005conf(commands[e], CTX0);
           }
-          if(CHTX=="1"){
+          if(CHTXC=="1"){
             du2005conf(commands[e], CTX1);
           }
-          if(CHTX=="2"){
+          if(CHTXC=="2"){
             du2005conf(commands[e], CTX2);
           }
-          if(CHTX=="3"){
+          if(CHTXC=="3"){
             du2005conf(commands[e], CTX3);
           }
-          if(CHTX=="4"){
+          if(CHTXC=="4"){
             du2005conf(commands[e], CTX4);
           }
-          if(CHTX=="5"){
+          if(CHTXC=="5"){
             du2005conf(commands[e], CTX5);
           }
-          if(CHTX=="6"){
+          if(CHTXC=="6"){
             du2005conf(commands[e], CTX6);
           }
-          if(CHTX=="7"){
+          if(CHTXC=="7"){
             du2005conf(commands[e], CTX7);
           }
-          if(CHTX=="8"){
+          if(CHTXC=="8"){
             du2005conf(commands[e], CTX8);
           }
-          if(CHTX=="9"){
+          if(CHTXC=="9"){
             du2005conf(commands[e], CTX9);
           }
           break;
         case 1: 
           break;
         case 2: 
-          du2005conf(commands[e],TPWR);
+          du2005conf(commands[e],TPWRC);
           break;
         case 3: 
-          du2005conf(commands[e],SBUD);
+          du2005conf(commands[e],SBUDC);
           break;
         case 4: 
-          du2005conf(commands[e],TPRT);
+          du2005conf(commands[e],TPRTC);
           break;
         case 5:
           break;
@@ -1287,7 +1294,6 @@ bool loaddata(String filename){
               MNTP = strcpy(cMNTP, cliente["MNTP"]);
               USER = strcpy(cUSER, cliente["USER"]);
               UPAS = strcpy(cUPAS, cliente["UPAS"]);
-              ERRC = strcpy(cERRC, cliente["ERRC"]);
               ChLoc = strcpy(cChLoc, cliente["chLoc"]);
               Latitude = strcpy(cLatitude, cliente["latitude"]);
               Longitude = strcpy(cLongitude, cliente["longitude"]);
@@ -1318,6 +1324,11 @@ bool loaddata(String filename){
               SREV = strcpy(cSREV, info["SREV"]);
               MODC = strcpy(cMODC, info["MODC"]);
               FIRC = strcpy(cFIRC, info["FIRC"]);
+              //erros
+              JsonObject erro = json["erro"][0];
+              ERRC = strcpy(cERRC, erro["ERRC"]);
+              EBC= strcpy(cEBC, erro["EBC"]);
+              ERRW = strcpy(cERRW, erro["ERRW"]);
               return true;
           }else{
               Serial.println("Failed to load btx_conf.json");
@@ -1379,7 +1390,6 @@ void saveConfigFile(String filename){
     cliente["MNTP"] = MNTP.c_str();
     cliente["USER"] = USER.c_str();
     cliente["UPAS"] = UPAS.c_str();
-    cliente["ERRC"] = ERRC.c_str();
     cliente["chLoc"] = ChLoc.c_str();
     cliente["latitude"] = Latitude.c_str();
     cliente["longitude"] = Longitude.c_str();
@@ -1407,6 +1417,10 @@ void saveConfigFile(String filename){
     info["SREV"] = SREV.c_str();
     info["MODC"] = MODC.c_str();
     info["FIRC"] = FIRC.c_str();
+    JsonObject erro = json["erro"].createNestedObject();
+    erro["ERRC"] = ERRC.c_str();
+    erro["EBC"] = EBC.c_str();
+    erro["ERRW"] = ERRW.c_str();
     File configFile = SPIFFS.open(filename, "w");
     if (!configFile){
       Serial.println("failed to open btx_conf.json file for writing");
@@ -1514,12 +1528,14 @@ void setup(){
     leds.setLedColorData(0, 255, 255, 0);
     leds.show();
     delay(100);  
-    INPT = "LOCAL";
+    EBC = "S";
     saveConfigFile(BTX_data);
     server.on("/USBPowerIssue", HTTP_GET, [](AsyncWebServerRequest * request){  
         request->send(200);
       });
     Serial.println("modo baixo consumo");
+  }else{
+    EBC = "N";
   }
 
   
@@ -1535,12 +1551,12 @@ void setup(){
   if (CONF == "1") {
     setupWiFiAndServer();
   }else if (CONF == "0") {
-    if (INPT == "SERIAL") {
-      mserial();
-    } else if (INPT == "CLIENT") {
-      cliente();
-    } else if (INPT == "LOCAL") {
+    if (INPT == "LOCAL"||EBC == "S") {
       local();
+    } else if (INPT == "CLIENT"&&EBC == "N") {
+      cliente();
+    } else if (INPT == "SERIAL"&&EBC == "N") {  
+      mserial();
     }
   }   
 }
@@ -1551,10 +1567,10 @@ void loop(){
 void handleSpiFFSError() {
   while (true) {
     delay(1);
-    leds.setLedColorData(0, 0, 255, 255);
+    leds.setLedColorData(0, 0, 128, 255);
     leds.show();
     delay(1);
-    leds.setLedColorData(1, 0, 255, 255);
+    leds.setLedColorData(1, 0, 128, 255);
     leds.show();
     delay(1000);
     leds.setLedColorData(0, 0, 0, 0);
@@ -1587,8 +1603,16 @@ void handleRadioError() {
 void setupWiFiAndServer() {
   WiFi.mode(WIFI_AP);
   WiFi.softAP("HugenPLUS-RADIO", NULL, 7, 0, 10);
+  Serial.println(WiFi.softAPmacAddress());
+  String macAddress = WiFi.softAPmacAddress();
+  macAddress.replace(":", "");
+  String lastFourDigits = macAddress.substring(macAddress.length() - 4);
+  String ssid = "HugenPLUS-RADIO_" + lastFourDigits;
+  WiFi.disconnect();
+  WiFi.softAP(ssid.c_str(), NULL, 7, 0, 10);
   Serial.println("Wait 100 ms for AP_START...");
   delay(100);
+  Serial.println(WiFi.softAPmacAddress());
   
   IPAddress Ip(192, 168, 0, 1);
   IPAddress Iplocal(192, 168, 0, 1);
@@ -1648,7 +1672,9 @@ void setupWiFiAndServer() {
         Tempoutc =  bp->value();
         ChLoc =     bq->value();
       }
-      INPT = "CLIENT";
+      if (EBC != "S") {
+        INPT = "CLIENT";
+      }
       SBUDC = "115200";
       conf_btx = 1;
       request->send(200);
@@ -1673,7 +1699,9 @@ void setupWiFiAndServer() {
         USERL = yf->value();
         UPASL = yg->value();
       }
-      INPT = "LOCAL";
+      if (EBC != "S") {
+        INPT = "LOCAL";
+      }
       conf_btx = 1;
       request->send(200);
     });
@@ -1776,9 +1804,9 @@ void setupWiFiAndServer() {
       conf_exit=1;
       request->send(200);
     });
-    server.on("/ERRC", HTTP_POST, [](AsyncWebServerRequest *request){
+    server.on("/ERR", HTTP_POST, [](AsyncWebServerRequest *request){
       ERRC = "0";
-      Serial.println(ERRC);
+      ERRW = "0";
       saveConfigFile(BTX_data);
       request->send(200);
     });
@@ -1947,13 +1975,13 @@ void erroLedNtrip(int erro){
     case 1:
       for(int wait=0;wait<10;wait++){
         delay(1);
-        leds.setLedColorData(0, 0, 100, 0);
+        leds.setLedColorData(0, 128, 0, 128);
         leds.show();
         delay(1);
         leds.setLedColorData(1, 0, 0, 0);
         leds.show();
         delay(1);
-        leds.setLedColorData(0, 0, 100, 0);
+        leds.setLedColorData(0, 128, 0, 128);
         leds.show();
         delay(1);
         leds.setLedColorData(1, 0, 0, 0);
@@ -1962,13 +1990,13 @@ void erroLedNtrip(int erro){
         leds.setLedColorData(0, 0, 0, 0);
         leds.show();
         delay(1);
-        leds.setLedColorData(1, 0, 100, 0);
+        leds.setLedColorData(1, 100, 0, 0);
         leds.show();
         delay(1);
         leds.setLedColorData(0, 0, 0, 0);
         leds.show();
         delay(1);
-        leds.setLedColorData(1, 0, 100, 0);
+        leds.setLedColorData(1, 100, 0, 0);
         leds.show();
         delay(500);
       }
@@ -1976,13 +2004,13 @@ void erroLedNtrip(int erro){
     case 2:
       for(int wait=0;wait<10;wait++){
         delay(1);
-        leds.setLedColorData(0, 0, 0, 200);
+        leds.setLedColorData(0, 128, 0, 128);
         leds.show();
         delay(1);
         leds.setLedColorData(1, 0, 0, 0);
         leds.show();
         delay(1);
-        leds.setLedColorData(0, 0, 0, 200);
+        leds.setLedColorData(0, 128, 0, 128);
         leds.show();
         delay(1);
         leds.setLedColorData(1, 0, 0, 0);
@@ -1991,13 +2019,13 @@ void erroLedNtrip(int erro){
         leds.setLedColorData(0, 0, 0, 0);
         leds.show();
         delay(1);
-        leds.setLedColorData(1, 0, 0, 200);
+        leds.setLedColorData(1, 128, 0, 128);
         leds.show();
         delay(1);
         leds.setLedColorData(0, 0, 0, 0); 
         leds.show();
         delay(1);
-        leds.setLedColorData(1, 0, 0, 200);
+        leds.setLedColorData(1, 128, 0, 128);
         leds.show();
         delay(500);
         handleInterruptProcessingNstop();
@@ -2006,13 +2034,13 @@ void erroLedNtrip(int erro){
     case 3:
       for(int wait=0;wait<10;wait++){
         delay(1);
-        leds.setLedColorData(0, 100, 0, 0);
+        leds.setLedColorData(0, 128, 0, 128);
         leds.show();
         delay(1);
         leds.setLedColorData(1, 0, 0, 0);
         leds.show();
         delay(1);
-        leds.setLedColorData(0, 100, 0, 0);
+        leds.setLedColorData(0, 128, 0, 128);
         leds.show();
         delay(1);
         leds.setLedColorData(1, 0, 0, 0);
@@ -2021,13 +2049,13 @@ void erroLedNtrip(int erro){
         leds.setLedColorData(0, 0, 0, 0);
         leds.show();
         delay(1);
-        leds.setLedColorData(1, 100, 0, 0);
+        leds.setLedColorData(1, 255, 128, 0);
         leds.show();
         delay(1);
         leds.setLedColorData(0, 0, 0, 0);
         leds.show();
         delay(1);
-        leds.setLedColorData(1, 100, 0, 0);
+        leds.setLedColorData(1, 255, 128, 0);
         leds.show();
         delay(500);
       }
@@ -2035,13 +2063,13 @@ void erroLedNtrip(int erro){
     case 5:
       for(int wait=0;wait<10;wait++){
         delay(1);
-        leds.setLedColorData(0, 100, 100, 100);
+        leds.setLedColorData(0, 128, 0, 128);
         leds.show();
         delay(1);
         leds.setLedColorData(1, 0, 0, 0);
         leds.show();
         delay(1);
-        leds.setLedColorData(0, 100, 100, 100);
+        leds.setLedColorData(0, 128, 0, 128);
         leds.show();
         delay(1);
         leds.setLedColorData(1, 0, 0, 0);
@@ -2050,16 +2078,45 @@ void erroLedNtrip(int erro){
         leds.setLedColorData(0, 0, 0, 0);
         leds.show();
         delay(1);
-        leds.setLedColorData(1, 100, 100, 100);
+        leds.setLedColorData(1, 0, 0, 100);
         leds.show();
         delay(1);
         leds.setLedColorData(0, 0, 0, 0);
         leds.show();
         delay(1);
-        leds.setLedColorData(1, 100, 100, 100);
+        leds.setLedColorData(1, 0, 0, 100);
         leds.show();
         delay(500);
         handleInterruptProcessingNstop();
+      }
+    break;
+    case 6:
+      for(int wait=0;wait<10;wait++){
+        delay(1);
+        leds.setLedColorData(0, 128, 0, 128);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(0, 128, 0, 128);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 0);
+        leds.show();
+        delay(500);
+        leds.setLedColorData(0, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 128, 255);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(0, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 128, 255);
+        leds.show();
+        delay(500);
       }
     break;
   }
@@ -2072,29 +2129,90 @@ void cliente(){
   attachInterrupt(digitalPinToInterrupt(BT1), handleInterrupt, CHANGE);
   WiFi.mode(WIFI_STA);
   WiFi.begin(cWIFI, cWPAS);
-  int t=0;
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    //Serial.println("Connecting to WiFi..");
-    if(t>5){
-      for(int wait=0;wait<10;wait++){
-      leds.setLedColorData(0, 250, 130, 0);
-      leds.show();
-      delay(1);
-      leds.setLedColorData(1, 0, 0, 0);
-      leds.show();
-      delay(500);
-      leds.setLedColorData(0, 0, 0, 0);
-      leds.show();
-      delay(1);
-      leds.setLedColorData(1, 250, 130, 0);
-      leds.show();
-      delay(500);
-      handleInterruptProcessingModes();
+  int i = 0;
+  while (WiFi.status() != WL_CONNECTED&&flag_erro==false) {
+    delay(100);
+    switch(WiFi.status()){
+        case WL_CONNECTED:
+        if(estado!=1){
+          ERRW = "0";  // Conectado com sucesso
+          saveConfigFile(BTX_data);
+        }
+        break;
+        case WL_NO_SSID_AVAIL:
+        if(estado!=2){
+          ERRW = "1";  // Rede não encontrada/ Login inválido
+          saveConfigFile(BTX_data);
+        }
+        break;
+      }
+    if(i>50){
+      flag_erro = true;
     }
-    ESP.restart();
-    }else{
-      t++;
+    i++;
+  }
+  if(ERRW!="1"&&flag_erro==true) {
+    ERRW = "2"; // Senha incorreta
+    saveConfigFile(BTX_data);
+  }  
+  if (flag_erro&&ERRW=="1") {
+    int t=0;
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(1000);
+      //Serial.println("Connecting to WiFi..");
+      if(t>5){
+        for(int wait=0;wait<10;wait++){
+        leds.setLedColorData(0, 0, 0, 100);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 0);
+        leds.show();
+        delay(500);
+        leds.setLedColorData(0, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 100, 0, 0);
+        leds.show();
+        delay(500);
+        handleInterruptProcessingModes();
+      }
+      CONF = "1";
+      saveConfigFile(BTX_data);
+      delay(100);
+      ESP.restart();
+      }else{
+        t++;
+      }
+    }
+  }
+  else if (flag_erro&&ERRW=="2") {
+    int t=0;
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(1000);
+      //Serial.println("Connecting to WiFi..");
+      if(t>5){
+        for(int wait=0;wait<10;wait++){
+        leds.setLedColorData(0, 0, 0, 100);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 0, 0, 0);
+        leds.show();
+        delay(500);
+        leds.setLedColorData(0, 0, 0, 0);
+        leds.show();
+        delay(1);
+        leds.setLedColorData(1, 255, 128, 0);
+        leds.show();
+        delay(500);
+        handleInterruptProcessingModes();
+      }
+      CONF = "1";
+      saveConfigFile(BTX_data);
+      delay(100);
+      ESP.restart();
+      }else{
+        t++;
+      }
     }
   }
   Serial.println(WiFi.localIP());
@@ -2119,6 +2237,8 @@ void cliente(){
     case 5: Serial.println("Servidor não responde");
             Serial.println("SourceTable request error");
     break;
+    case 6: Serial.println("Mount Point incorreto");
+    break;
   }
   ntrip_c.stop(); //Need to call "stop" function for next request.
   Serial.println("Requesting MountPoint's Raw data");     
@@ -2130,7 +2250,6 @@ void cliente(){
                 erroLedNtrip(1);
                 clientmodo = 0;
                 ERRC = "1";
-                Serial.print("Valor de erro é: ");Serial.println(ERRC);
                 CONF="1";
                 saveConfigFile(BTX_data);
                 delay(100);
@@ -2141,7 +2260,6 @@ void cliente(){
                 erroLedNtrip(2);
                 clientmodo = 0;
                 ERRC = "2";
-                Serial.print("Valor de erro é: ");Serial.println(ERRC);
                 saveConfigFile(BTX_data);
                 delay(100);
                 ntrip_c.stop();
@@ -2152,7 +2270,6 @@ void cliente(){
                 erroLedNtrip(3);
                 clientmodo = 0;
                 ERRC = "3";
-                Serial.print("Valor de erro é: ");Serial.println(ERRC);
                 CONF="1";
                 saveConfigFile(BTX_data);
                 delay(100);
@@ -2166,7 +2283,16 @@ void cliente(){
                 erroLedNtrip(5);
                 clientmodo = 0;
                 ERRC = "5";
-                Serial.print("Valor de erro é: ");Serial.println(ERRC);
+                saveConfigFile(BTX_data);
+                delay(100);
+                ntrip_c.stop();
+                ESP.restart();
+        break;
+        case 6: Serial.println("Mount Point incorreto");
+                erroLedNtrip(6);
+                clientmodo = 0;
+                ERRC = "6";
+                CONF="1";
                 saveConfigFile(BTX_data);
                 delay(100);
                 ntrip_c.stop();
@@ -2180,7 +2306,6 @@ void cliente(){
               erroLedNtrip(1);
               clientmodo = 0;
               ERRC = "1";
-              Serial.print("Valor de erro é: ");Serial.println(ERRC);
               CONF="1";
               saveConfigFile(BTX_data);
               delay(100);
@@ -2191,7 +2316,6 @@ void cliente(){
               erroLedNtrip(2);
               clientmodo = 0;
               ERRC = "2";
-              Serial.print("Valor de erro é: ");Serial.println(ERRC);
               saveConfigFile(BTX_data);
               delay(100);
               ntrip_c.stop();
@@ -2202,7 +2326,6 @@ void cliente(){
               erroLedNtrip(3);
               clientmodo = 0;
               ERRC = "3";
-              Serial.print("Valor de erro é: ");Serial.println(ERRC);
               CONF="1";
               saveConfigFile(BTX_data);
               delay(100);
@@ -2216,12 +2339,21 @@ void cliente(){
               erroLedNtrip(5);
               clientmodo = 0;
               ERRC = "5";
-              Serial.print("Valor de erro é: ");Serial.println(ERRC);
               saveConfigFile(BTX_data);
               delay(100);
               ntrip_c.stop();
               ESP.restart();
       break;
+      case 6: Serial.println("Mount Point incorreto");
+              erroLedNtrip(6);
+              clientmodo = 0;
+              ERRC = "6";
+              CONF="1";
+              saveConfigFile(BTX_data);
+              delay(100);
+              ntrip_c.stop();
+              ESP.restart();
+        break;
     }
   }
   leds.setLedColorData(0, 0, 200, 0);
@@ -2301,6 +2433,8 @@ void cliente(){
             leds.setLedColorData(0, 0,0,0);
             leds.show();
             delay(250);
+            ntrip_c.stop();
+            ESP.restart();
           }
         }
       }
@@ -2327,6 +2461,8 @@ void cliente(){
             leds.setLedColorData(0, 0,0,0);
             leds.show();
             delay(250);
+            ntrip_c.stop();
+            ESP.restart();
           }
         }
       }
@@ -2353,6 +2489,8 @@ void cliente(){
             leds.setLedColorData(0, 0,0,0);
             leds.show();
             delay(250);
+            ntrip_c.stop();
+            ESP.restart();
           }
         }
       }
@@ -2367,7 +2505,7 @@ void mserial(){
   attachInterrupt(digitalPinToInterrupt(BT1), handleInterrupt, CHANGE);
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
-  leds.setLedColorData(0, 255, 135, 0);
+  leds.setLedColorData(0, 255, 128, 0);
   leds.show();
   delay(1);
   input = 0;
@@ -2421,6 +2559,7 @@ void mserial(){
             leds.setLedColorData(0, 0,0,0);
             leds.show();
             delay(250);
+            ESP.restart();
           }
         }
       }
@@ -2447,6 +2586,7 @@ void mserial(){
             leds.setLedColorData(0, 0,0,0);
             leds.show();
             delay(250);
+            ESP.restart();
           }
         }
       }
@@ -2473,6 +2613,7 @@ void mserial(){
             leds.setLedColorData(0, 0,0,0);
             leds.show();
             delay(250);
+            ESP.restart();
           }
         }
       }
