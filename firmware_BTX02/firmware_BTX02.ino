@@ -2291,14 +2291,11 @@ void cliente(){
   }
   if (WiFi.status() == WL_CONNECTED && DNSTranslation(cHOST) != NULL) {
     strcpy(cHOST, DNSTranslation(cHOST));
-  }
+    
+    configTime(0, 0, "pool.ntp.org");
+    Serial.println("Esperando sincronização de horário...");
 
-  configTime(0, 0, "pool.ntp.org");
-  Serial.println("Esperando sincronização de horário...");
-  
-  while (!getLocalTime(&timeinfo)) {
-    Serial.println("Falha ao obter o tempo");
-    delay(1000);
+    getLocalTime(&timeinfo);
   }
 
   //Serial.println(WiFi.localIP());
