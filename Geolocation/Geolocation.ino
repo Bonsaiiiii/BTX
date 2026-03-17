@@ -3,6 +3,9 @@
 #include <AsyncTCP.h>
 #include <FS.h>
 #include <SPIFFS.h>
+#include "ESPmDNS.h"
+
+const char* host = "BTX02";
 
 AsyncWebServer server(80);
 
@@ -19,6 +22,7 @@ void setup() {
   while (WiFi.status() != WL_CONNECTED) {
     Serial.println("Connecting to WiFi..");
     delay(100);
+    MDNS.begin(host);
   }
   //  Configura a taxa de transferência em bits por segundo (baud rate) para transmissão serial
   Serial.println(WiFi.localIP());
@@ -38,7 +42,9 @@ void setup() {
   server.on("/bootstrap.min.js", HTTP_GET, [](AsyncWebServerRequest *request){
       request->send(SPIFFS, "/bootstrap.min.js", "text/javascript");
   });
-
+  server.on("/loc", HTTP_GET, [](AsyncWebServerRequest *request){
+      request->send(SPIFFS, "/loc.json", "text/javascript");
+  });
   // disponibiliza o url "/" para que quando acessada, a redireciona para a url "/index.html"
   server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
     Serial.println("Pagina / acessada");
@@ -59,21 +65,16 @@ void setup() {
     if (request->hasParam("Longitude", true)) {
       AsyncWebParameter* lo = request->getParam("Longitude", true);
       //Serial.printf("O parâmetro POST %s existe e possui o valor %s\n", lo->name(), lo->value());
-    if (request->hasParam("Precisão", true)) {
-      AsyncWebParameter* pr = request->getParam("Precisão", true);
-      //Serial.printf("O parâmetro POST %s existe e possui o valor %s\n", lo->name(), lo->value());
 
     // Armazena os valores recebidos em variáveis
     Latitude = la->value();
     Longitude = lo->value();
-    Precisão = pr->value();
 
     // Imprime as informações recebidas
     Serial.printf("Latitude têm o valor de: %s\n", Latitude);
     Serial.printf("Longitude têm o valor de: %s\n", Longitude);
-    Serial.printf("Com a precisão de: %s\n", Precisão, " metros");
     
-    }}}
+    }}
     else {
       Serial.println("Credenciais não encontradas");
     }

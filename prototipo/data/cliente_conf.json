@@ -1,0 +1,22 @@
+{
+  "TX": "0",
+  "PWR": "H",
+  "SBAUD": "115200",
+  "PRT": "SATEL3",
+  "FLOW": "410",
+  "FUPP": "470",
+  "MODE": "TXONLY",
+  "WIFI": "Hugen",
+  "WPAS": "32851112",
+  "HOST": "192.168.3.46",
+  "PORT": "2101",
+  "MNTP": "IFSC0",
+  "USER": "SNIP",
+  "UPAS": "1234",
+  "latitude":"",
+	"longitude":"",
+	"altitude":"",
+	"precisao":"",
+	"tempoutc":"",
+	"chLoc":"S"
+}
