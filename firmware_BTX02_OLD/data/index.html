@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/bootstrap.min.css">
+  <link rel="stylesheet" href="/jquery-ui.css">
+  <script src="/jquery.min.js"></script>
+  <script src="/bootstrap.min.js"></script>
+  <script src="/jquery-ui.js"></script>
+</head>
+
+<body class="mx-auto">
+
+  <div class="modal" id="modalErrc" data-bs-keyboard="false" data-bs-backdrop="static">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="bolded">
+            <h5 class="modal-title text-center" id="modalErrcTitle"><strong> title </strong></h5>
+          </span>
+        </div>
+        <div class="modal-body" id="modalErrcBody">
+          <p>Modal body text goes here.</p>
+        </div>
+        <div class="modal-footer">
+          <button onclick="closeERR();" type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modalErrw" data-bs-keyboard="false" data-bs-backdrop="static">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="bolded">
+            <h5 class="modal-title text-center" id="modalErrwTitle"><strong> title </strong></h5>
+          </span>
+        </div>
+        <div class="modal-body" id="modalErrwBody">
+          <p>Modal body text goes here.</p>
+        </div>
+        <div class="modal-footer">
+          <button onclick="closeERR();" type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="main-content">
+    <div class="my-4">
+      <h1 class="text-center">
+        Painel de configurações
+      </h1>
+    </div>
+    <div class="text-center">
+      <div class="btn-group mx-1">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modaltx">Configurar canais
+          transmissão</button>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalrx">Configurar canais
+          recepção</button>
+      </div>
+      <div class="btn-group mx-1">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modaladv">Configurações
+          avançadas</button>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+          data-bs-target="#modalinfo">informações</button>
+      </div>
+    </div>
+
+    <div class="modal" id="modaltx" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Canais de Transmissão</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form class="form-group" id="txchanels" onsubmit="enviaTx(); return false;" action="/txchanels">
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 0</span>
+                <input type="text" id="ch_0_tx" name="ch_0_tx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 1</span>
+                <input type="text" id="ch_1_tx" name="ch_1_tx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 2</span>
+                <input type="text" id="ch_2_tx" name="ch_2_tx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 3</span>
+                <input type="text" id="ch_3_tx" name="ch_3_tx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 4</span>
+                <input type="text" id="ch_4_tx" name="ch_4_tx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 5</span>
+                <input type="text" id="ch_5_tx" name="ch_5_tx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 6</span>
+                <input type="text" id="ch_6_tx" name="ch_6_tx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 7</span>
+                <input type="text" id="ch_7_tx" name="ch_7_tx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 8</span>
+                <input type="text" id="ch_8_tx" name="ch_8_tx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 9</span>
+                <input type="text" id="ch_9_tx" name="ch_9_tx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="modal-footer">
+                <button onclick="closeModal()" type="button" class="btn btn-default"
+                  data-bs-dismiss="modal">Close</button>
+                <button type="submit" form="txchanels" class="btn btn-primary">Save changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="modalrx">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Canais de Recepção</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form class="form-group" id="rxchanels" onsubmit="enviaRx(); return false;" action="/rxchanels">
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 0</span>
+                <input type="text" id="ch_0_rx" name="ch_0_rx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 1</span>
+                <input type="text" id="ch_1_rx" name="ch_1_rx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 2</span>
+                <input type="text" id="ch_2_rx" name="ch_2_rx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 3</span>
+                <input type="text" id="ch_3_rx" name="ch_3_rx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 4</span>
+                <input type="text" id="ch_4_rx" name="ch_4_rx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 5</span>
+                <input type="text" id="ch_5_rx" name="ch_5_rx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 6</span>
+                <input type="text" id="ch_6_rx" name="ch_6_rx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 7</span>
+                <input type="text" id="ch_7_rx" name="ch_7_rx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 8</span>
+                <input type="text" id="ch_8_rx" name="ch_8_rx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text">Canal 9</span>
+                <input type="text" id="ch_9_rx" name="ch_9_rx" class="form-control" maxlength="9" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}.[0-9]{5}" placeholder="410.00000 - 469.00000">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <div class="modal-footer">
+                <button onclick="closeModal()" type="button" class="btn btn-default"
+                  data-bs-dismiss="modal">Close</button>
+                <button type="submit" form="rxchanels" class="btn btn-primary">Save changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="modal" id="modaladv">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Configurações Avançadas</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form class="form-group" id="advform" onsubmit="enviaAdv(); return false;" action="/adv">
+              <label for="saidaonoff" class="form-label">Saida de alimentação ligada ou não?</label>
+              <select class="form-select" id="saidaonoff" name="soutl">
+                <option value="S">Sim</option>
+                <option value="N">Não</option>
+              </select>
+              <label for="modo_id" class="form-label">Modo de operação</label>
+              <select class="form-select" id="modo_id" name="modo">
+                <option value="TXONLY">TXONLY</option>
+                <option value="RXONLY">RXONLY</option>
+                <option value="DUPLEX">DUPLEX</option>
+              </select>
+              <label for="flow_id" class="form-label mt-4">Limite inferior da faixa de frequencia do radio</label>
+              <label for="flow_id" class="mb-2">(410-470Mhz e menor que FUPP)</label>
+              <div class="input-group mb-3">
+                <span class="input-group-text">FLOW</span>
+                <input type="text" id="flow_id" name="flow" class="form-control" maxlength="3" required
+                  pattern="[4]{1}[1-6]{1}[0-9]{1}">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <label for="fupp_id" class="form-label mt-1">Limite superior da faixa de frequencia do radio</label>
+              <label for="fupp_id" class="mb-2">(410-470Mhz e maior que FLOW)</label>
+              <div class="input-group mb-3">
+                <span class="input-group-text">FUPP</span>
+                <input type="text" id="fupp_id" name="fupp" class="form-control" maxlength="3" required
+                  pattern="[4]{1}[1-7]{1}[0-9]{1}">
+                <span class="input-group-text">Mhz</span>
+              </div>
+              <label for="read_id" class="form-label">ler dados do radio novamente</label>
+              <select class="form-select" id="read_id" name="read">
+                <option value="SIM">SIM</option>
+                <option value="NAO">NÃO</option>
+              </select>
+            </form>
+            <div class="modal-footer">
+              <button onsubmit="closeModal()" type="button" class="btn btn-default"
+                data-bs-dismiss="modal">Close</button>
+              <button type="submit" form="advform" class="btn btn-primary">Save changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="modalinfo">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Informações</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p class="text-left">Marca: Hugen Plus</p>
+            <p class="text-left">Modelo: %model%</p>
+            <p class="text-left">Codigo Serial: %codser%</p>
+            <p class="text-left">versão de firmware radio: %firver%</p>
+            <p class="text-left">Versão de firmware controle: %controlver%</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="PWRWarning" style="display: none;" class="text-danger text-center"> Modo de baixo consumo <br> (Fonte de alimentação não suporta
+      Power Delivery) <br> Aviso: No modo Baixo consumo apenas o modo Caster Local está disponível, outros modos apenas podem ser configurados.</div>
+
+    <div class="mt-4 mb-4">
+      <ul class="nav nav-tabs nav-justified active" role="tablist">
+        <li class="nav-item" role="presentation">
+          <a class="nav-link" id="serial-tab" data-bs-toggle="tab" href="#SERIAL" role="tab">Serial</a>
+        </li>
+        <li class="nav-item" role="presentation">
+          <a class="nav-link" id="cliente-tab" data-bs-toggle="tab" href="#CLIENT" role="tab">Cliente</a>
+        </li>
+        <li class="nav-item" role="presentation">
+          <a class="nav-link" id="local-tab" data-bs-toggle="tab" href="#LOCAL" role="tab">Caster Local</a>
+        </li>
+      </ul>
+    </div>
+
+
+    <div id="myTabContent" class="tab-content">
+      <div class="tab-pane fade" id="SERIAL" role="tabpanel">
+        <span id="serialSim" class="badge bg-success">Modo de operação atual</span>
+        <form onsubmit="enviaSerial(); return false;" id="serialform" class="form-group mx-1 form-control-lg"
+          action="/serial">
+
+
+          <h2 class=" mt-4 text-center">Configurações Serial</h2>
+          <p>
+            Neste modo a porta superior será ativada podendo receber e transmitir correções RTK via serial e as receber
+            ou transmitir via UHF.
+          </p>
+          <label for="tx_id" class="form-label mt-4 mx-1">Canais de transmissão (0-9)</label>
+          <select class="form-select" id="tx_id" name="tx">
+            <option value="0" id="ltx0"></option>
+            <option value="1" id="ltx1"></option>
+            <option value="2" id="ltx2"></option>
+            <option value="3" id="ltx3"></option>
+            <option value="4" id="ltx4"></option>
+            <option value="5" id="ltx5"></option>
+            <option value="6" id="ltx6"></option>
+            <option value="7" id="ltx7"></option>
+            <option value="8" id="ltx8"></option>
+            <option value="9" id="ltx9"></option>
+          </select>
+          <label for="rx_id" class="form-label mt-4 mx-1">Canais de recepção (0-9)</label>
+          <select class="form-select" id="rx_id" name="rx">
+            <option value="0" id="lrx0"></option>
+            <option value="1" id="lrx1"></option>
+            <option value="2" id="lrx2"></option>
+            <option value="3" id="lrx3"></option>
+            <option value="4" id="lrx4"></option>
+            <option value="5" id="lrx5"></option>
+            <option value="6" id="lrx6"></option>
+            <option value="7" id="lrx7"></option>
+            <option value="8" id="lrx8"></option>
+            <option value="9" id="lrx9"></option>
+          </select>
+          <label for="sbaud_id" class="form-label mt-4 mx-1">Porta Serial (entrada de dados externa)</label>
+          <select class="form-select" id="sbaud_id" name="sbaud">
+            <option value="9600">9600</option>
+            <option value="19200">19200</option>
+            <option value="38400">38400</option>
+            <option value="115200">115200</option>
+          </select>
+          <label for="pwr_id" class="form-label mt-4 mx-1">Potencia de transmissão</label>
+          <select class="form-select" id="pwr_id" name="pwr">
+            <option value="L">Baixo (0.5W)</option>
+            <option value="M">Médio (1W)</option>
+            <option value="H">Alto (2W)</option>
+          </select>
+          <label for="prt_id" class="form-label mt-4 mx-1">Protocolo de comunicação</label>
+          <select class="form-select" id="prt_id" name="prt">
+            <option value="TRIMTALK1">Trimtalk 450s (4800bps)</option>
+            <option value="TRIMTALK2">Trimtalk 450s (9600bps)</option>
+            <option value="TRIMMK31">TRIMMK3 (4800bps)</option>
+            <option value="TRIMMK32">TRIMMK3 (19200bps)</option>
+            <option value="TRANSEOT1">Transparent EOT (4800bps)</option>
+            <option value="TRANSEOT2">Transparent EOT (9600bps)</option>
+            <option value="SATEL1">Satel (4800bps)</option>
+            <option value="SATEL2">Satel (9600bps)</option>
+            <option value="SATEL3">Satel (19200bps)</option>
+            <option value="SOUTH1">South (4800bps)</option>
+            <option value="SOUTH2">South (9600bps)</option>
+            <option value="SOUTH3">South (19200bps)</option>
+          </select>
+          <div class="mt-4 text-center">
+            <button id="button1" type="submit" form="serialform" class="btn btn-lg btn-primary">Programar
+              configurações</button>
+          </div>
+        </form>
+      </div>
+
+
+
+      <div class="tab-pane fade" id="CLIENT" role="tabpanel">
+        <span id="clientSim" class="badge bg-success">Modo de operação atual</span>
+        <form onsubmit="enviaClient(); return false;" id="clientform" class="form-group mx-1 form-control-lg"
+          action="/client">
+
+          <h2 class="mt-4 text-center">Configurações Cliente</h2>
+          <p>
+            Neste modo o BTX>02 recebe correções RTK via Ntrip e transmite via UHF.
+          </p>
+          <label for="tx_id_c" class="form-label mt-4 mx-1">Canais de transmissão (0-9)</label>
+          <select class="form-select" id="tx_id_c" name="txc">
+            <option value="0" id="ltx0_c"></option>
+            <option value="1" id="ltx1_c"></option>
+            <option value="2" id="ltx2_c"></option>
+            <option value="3" id="ltx3_c"></option>
+            <option value="4" id="ltx4_c"></option>
+            <option value="5" id="ltx5_c"></option>
+            <option value="6" id="ltx6_c"></option>
+            <option value="7" id="ltx7_c"></option>
+            <option value="8" id="ltx8_c"></option>
+            <option value="9" id="ltx9_c"></option>
+          </select>
+          <label for="pwr_id_c" class="form-label mt-4 mx-1">Potencia de transmissão</label>
+          <select class="form-select" id="pwr_id_c" name="pwrc">
+            <option value="L">Baixo (0.5W)</option>
+            <option value="M">Médio (1W)</option>
+            <option value="H">Alto (2W)</option>
+          </select>
+          <label for="prt_id_c" class="form-label mt-4 mx-1">Protocolo de comunicação</label>
+          <select class="form-select" id="prt_id_c" name="prtc">
+            <option value="TRIMTALK1">Trimtalk 450s (4800bps)</option>
+            <option value="TRIMTALK2">Trimtalk 450s (9600bps)</option>
+            <option value="TRIMMK31">TRIMMK3 (4800bps)</option>
+            <option value="TRIMMK32">TRIMMK3 (19200bps)</option>
+            <option value="TRANSEOT1">Transparent EOT (4800bps)</option>
+            <option value="TRANSEOT2">Transparent EOT (9600bps)</option>
+            <option value="SATEL1">Satel (4800bps)</option>
+            <option value="SATEL2">Satel (9600bps)</option>
+            <option value="SATEL3">Satel (19200bps)</option>
+            <option value="SOUTH1">South (4800bps)</option>
+            <option value="SOUTH2">South (9600bps)</option>
+            <option value="SOUTH3">South (19200bps)</option>
+          </select>
+          <label for="wifi_id" class="form-label mt-4 mx-1">Credenciais da rede WIFI</label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">Rede WIFI</span>
+            <input type="text" class="form-control autocomplete" maxlength="22" id="wifi_id" name="wifi" value=""
+              required>
+          </div>
+          <div class="input-group mb-3">
+            <span class="input-group-text">Senha WIFI</span>
+            <input type="text" class="form-control autocomplete" maxlength="23" id="wifipass_id" name="wifipass"
+              value="" required>
+          </div>
+          <label for="ip_id" class="form-label mx-2">Numero de IP do host NTRIP (x.x.x.x)</label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">HOST IP</span>
+            <input type="text" class="form-control autocomplete" maxlength="15" placeholder="192.168.4.1"
+              pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" id="ip_id" name="IP"
+              value="" required>
+          </div>
+          <label for="port_id" class="form-label mx-2">Numero da porta do host NTRIP (1 - 65535)</label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">PORTA</span>
+            <input type="text" class="form-control autocomplete" maxlength="5" id="port_id" name="port" value=""
+              required>
+          </div>
+          <label for="mountpt_id" class="form-label mx-2">Nome do Mount point do host NTRIP (maximo de 80
+            caracteres)</label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">Mount point</span>
+            <input type="text" class="form-control autocomplete" maxlength="80" id="mountpt_id" name="mountpt" value=""
+              required>
+          </div>
+          <label for="user_id" class="form-label mx-2">Nome de usuario do host NTRIP (maximo de 40 caracteres)</label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">Usuario</span>
+            <input type="text" class="form-control autocomplete" maxlength="40" id="user_id" name="user" value=""
+              required>
+          </div>
+          <label for="userpass_id" class="form-label mx-2">Senha de usuario do host NTRIP (maximo de 30
+            caracteres)</label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">Senha</span>
+            <input type="text" class="form-control autocomplete" maxlength="30" id="userpass_id" name="userpass"
+              value="" required>
+          </div>
+
+          <h4 class="text-center">Localização do BTX_02</h4>
+          <label for="check_localizacao" class="form-label mt-4 mx-1">Mandar posição para o servidor de
+            NTRIP?¹</label>
+          <div class="input-group mb-3">
+            <select class="form-select bg-secondary" id="check_localizacao" name="check_loc">
+              <option value="S">Sim</option>
+              <option value="N">Não</option>
+            </select>
+          </div>
+          <label class="form-label my-2" for="latitude">Latitude: </label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">Latitude</span>
+            <input type="text" class="form-control" maxlength="20" id="latitude" name="lat" value="">
+          </div>
+          <label class="form-label my-2" for="longitude">Longitude: </label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">Longitude</span>
+            <input type="text" class="form-control" maxlength="20" id="longitude" name="lon" value="">
+          </div>
+          <label class="form-label my-2" for="precisao">Precisão em metros: </label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">Precisão</span>
+            <input type="text" class="form-control" maxlength="20" id="precisao" name="prec" value="">
+          </div>
+          <label class="form-label my-2" for="altitude">Altitude: </label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">Altitude</span>
+            <input type="text" class="form-control" maxlength="20" id="altitude" name="alt" value="">
+          </div>
+          <label class="form-label my-2" for="tempoutc">Horas em UTC: </label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">Tempo UTC</span>
+            <input type="text" class="form-control" maxlength="20" id="tempoutc" name="utc" value="">
+          </div>
+          <div class="my-4 text-center">
+            <button onclick="requestLoc(); return false;" form="clientform" class="btn btn-primary" button>Buscar
+              Localização</button>
+            <button id="button2" type="submit" form="clientform" class="btn btn-lg btn-primary">Programar
+              configurações</button>
+          </div>
+        </form>
+      </div>
+
+
+
+      <div class="tab-pane fade" id="LOCAL" role="tabpanel">
+        <span id="localSim" class="badge bg-success">Modo de operação atual</span>
+        <form onsubmit="enviaLocal(); return false;" id="localform" class="form-group mx-1 form-control-lg"
+          action="/local">
+
+          <h2 class="mt-4 text-center">Configurações Caster Local</h2>
+          <p>
+            Neste modo o BTX>02 recebe correções RTK via a porta serial superior e gera uma rede WIFI para que outros
+            dispositivos recebam via NTRIP.
+          </p>
+          <label for="sbaud_id_l" class="form-label mt-4 mx-1">Porta Serial (entrada de dados externa)</label>
+          <select class="form-select" id="sbaud_id_l" name="sbaudl">
+            <option value="9600">9600</option>
+            <option value="19200">19200</option>
+            <option value="38400">38400</option>
+            <option value="115200">115200</option>
+          </select>
+          <label for="wifi_id_l" class="form-label mt-4 mx-1">Credenciais da rede WIFI</label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">Rede WIFI</span>
+            <input type="text" class="form-control autocomplete" maxlength="22" id="wifi_id_l" name="wifi" value=""
+              required>
+          </div>
+          <div class="input-group mb-3">
+            <span class="input-group-text">Senha WIFI</span>
+            <input type="text" class="form-control autocomplete" maxlength="23" id="wifipass_id_l" name="wifipass"
+              value="" required>
+          </div>
+          <label for="ip_id_l" class="form-label mx-2">Numero de IP do host NTRIP (x.x.x.x)</label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">HOST IP</span>
+            <input type="text" class="form-control autocomplete" maxlength="15" value="192.168.4.1"
+              pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" id="ip_id_l" name="IP"
+              value="" disabled>
+          </div>
+          <label for="port_id_l" class="form-label mx-2">Numero da porta do host NTRIP</label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">PORTA</span>
+            <input type="text" class="form-control autocomplete" maxlength="5" id="port_id_l" name="port" value="2101"
+              disabled>
+          </div>
+          <label for="mountpt_id_l" class="form-label mx-2">Nome do Mount point do host NTRIP (maximo de 80
+            caracteres)</label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">Mount point</span>
+            <input type="text" class="form-control autocomplete" maxlength="20" id="mountpt_id_l" name="mountpt"
+              value="" required>
+          </div>
+          <label for="user_id_l" class="form-label mx-2">Nome de usuario do host NTRIP (maximo de 30
+            caracteres)</label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">Usuario</span>
+            <input type="text" class="form-control autocomplete" maxlength="20" id="user_id_l" name="user" value=""
+              required>
+          </div>
+          <label for="userpass_id_l" class="form-label mx-2">Senha de usuario do host NTRIP (maximo de 30
+            caracteres)</label>
+          <div class="input-group mb-3">
+            <span class="input-group-text">Senha</span>
+            <input type="text" class="form-control autocomplete" maxlength="20" id="userpass_id_l" name="userpass"
+              value="" required>
+          </div>
+          <div class="my-4 text-center">
+            <button id="button2" type="submit" form="localform" class="btn btn-lg btn-primary">Programar
+              configurações</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <footer>
+      <form>
+        <div class="my-4 text-center">
+          <button id="sairConfig" type="button" class="btn btn-lg btn-primary" data-bs-toggle="modal"
+            data-bs-target="#enviarConfig">
+            Sair modo de configuração
+          </button>
+        </div>
+      </form>
+      <div class="modal" id="enviarConfig" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Tem certeza que quer enviar as informações e sair do modo de configuração?</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true"></span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="modal-footer">
+                <button onclick="closeconf()" type="submit" form="txchanels" class="btn btn-primary"
+                  data-bs-dismiss="modal">Sim</button>
+                <button type="button" class="btn btn-default" data-bs-dismiss="modal">Não</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+
+    var INPT;
+
+    function activateTab(activeTabId) {
+      document.getElementById("serialSim").style.display = (activeTabId === "SERIAL") ? "inline-block" : "none";
+      document.getElementById("clientSim").style.display = (activeTabId === "CLIENT") ? "inline-block" : "none";
+      document.getElementById("localSim").style.display = (activeTabId === "LOCAL") ? "inline-block" : "none";
+
+      // Desative a aba e o conteúdo atuais
+      document.querySelector('.nav-link.active')?.classList.remove('active');
+      document.querySelector('.tab-pane.active')?.classList.remove('active', 'show');
+
+      // Ative a nova aba e o respectivo conteúdo com base em activeTabId
+      document.querySelector(`a[href="#${activeTabId}"]`).classList.add('active');
+      document.querySelector(`#${activeTabId}`).classList.add('active', 'show');
+    }
+
+    const xmlhttp_ch = new XMLHttpRequest();
+    xmlhttp_ch.onload = function () {
+      const json = JSON.parse(this.responseText);
+
+      document.getElementById("ltx0").text = "chanel 0 - frequencia = " + json.tx_ch[0].TX0;
+      document.getElementById("ltx1").text = "chanel 1 - frequencia = " + json.tx_ch[0].TX1;
+      document.getElementById("ltx2").text = "chanel 2 - frequencia = " + json.tx_ch[0].TX2;
+      document.getElementById("ltx3").text = "chanel 3 - frequencia = " + json.tx_ch[0].TX3;
+      document.getElementById("ltx4").text = "chanel 4 - frequencia = " + json.tx_ch[0].TX4;
+      document.getElementById("ltx5").text = "chanel 5 - frequencia = " + json.tx_ch[0].TX5;
+      document.getElementById("ltx6").text = "chanel 6 - frequencia = " + json.tx_ch[0].TX6;
+      document.getElementById("ltx7").text = "chanel 7 - frequencia = " + json.tx_ch[0].TX7;
+      document.getElementById("ltx8").text = "chanel 8 - frequencia = " + json.tx_ch[0].TX8;
+      document.getElementById("ltx9").text = "chanel 9 - frequencia = " + json.tx_ch[0].TX9;
+
+      document.getElementById("ltx0_c").text = "chanel 0 - frequencia = " + json.tx_ch[0].TX0;
+      document.getElementById("ltx1_c").text = "chanel 1 - frequencia = " + json.tx_ch[0].TX1;
+      document.getElementById("ltx2_c").text = "chanel 2 - frequencia = " + json.tx_ch[0].TX2;
+      document.getElementById("ltx3_c").text = "chanel 3 - frequencia = " + json.tx_ch[0].TX3;
+      document.getElementById("ltx4_c").text = "chanel 4 - frequencia = " + json.tx_ch[0].TX4;
+      document.getElementById("ltx5_c").text = "chanel 5 - frequencia = " + json.tx_ch[0].TX5;
+      document.getElementById("ltx6_c").text = "chanel 6 - frequencia = " + json.tx_ch[0].TX6;
+      document.getElementById("ltx7_c").text = "chanel 7 - frequencia = " + json.tx_ch[0].TX7;
+      document.getElementById("ltx8_c").text = "chanel 8 - frequencia = " + json.tx_ch[0].TX8;
+      document.getElementById("ltx9_c").text = "chanel 9 - frequencia = " + json.tx_ch[0].TX9;
+
+      document.getElementById("lrx0").text = "chanel 0 - frequencia = " + json.rx_ch[0].RX0;
+      document.getElementById("lrx1").text = "chanel 1 - frequencia = " + json.rx_ch[0].RX1;
+      document.getElementById("lrx2").text = "chanel 2 - frequencia = " + json.rx_ch[0].RX2;
+      document.getElementById("lrx3").text = "chanel 3 - frequencia = " + json.rx_ch[0].RX3;
+      document.getElementById("lrx4").text = "chanel 4 - frequencia = " + json.rx_ch[0].RX4;
+      document.getElementById("lrx5").text = "chanel 5 - frequencia = " + json.rx_ch[0].RX5;
+      document.getElementById("lrx6").text = "chanel 6 - frequencia = " + json.rx_ch[0].RX6;
+      document.getElementById("lrx7").text = "chanel 7 - frequencia = " + json.rx_ch[0].RX7;
+      document.getElementById("lrx8").text = "chanel 8 - frequencia = " + json.rx_ch[0].RX8;
+      document.getElementById("lrx9").text = "chanel 9 - frequencia = " + json.rx_ch[0].RX9;
+
+      document.getElementById("ch_0_tx").value = json.tx_ch[0].TX0;
+      document.getElementById("ch_1_tx").value = json.tx_ch[0].TX1;
+      document.getElementById("ch_2_tx").value = json.tx_ch[0].TX2;
+      document.getElementById("ch_3_tx").value = json.tx_ch[0].TX3;
+      document.getElementById("ch_4_tx").value = json.tx_ch[0].TX4;
+      document.getElementById("ch_5_tx").value = json.tx_ch[0].TX5;
+      document.getElementById("ch_6_tx").value = json.tx_ch[0].TX6;
+      document.getElementById("ch_7_tx").value = json.tx_ch[0].TX7;
+      document.getElementById("ch_8_tx").value = json.tx_ch[0].TX8;
+      document.getElementById("ch_9_tx").value = json.tx_ch[0].TX9;
+
+      document.getElementById("ch_0_rx").value = json.rx_ch[0].RX0;
+      document.getElementById("ch_1_rx").value = json.rx_ch[0].RX1;
+      document.getElementById("ch_2_rx").value = json.rx_ch[0].RX2;
+      document.getElementById("ch_3_rx").value = json.rx_ch[0].RX3;
+      document.getElementById("ch_4_rx").value = json.rx_ch[0].RX4;
+      document.getElementById("ch_5_rx").value = json.rx_ch[0].RX5;
+      document.getElementById("ch_6_rx").value = json.rx_ch[0].RX6;
+      document.getElementById("ch_7_rx").value = json.rx_ch[0].RX7;
+      document.getElementById("ch_8_rx").value = json.rx_ch[0].RX8;
+      document.getElementById("ch_9_rx").value = json.rx_ch[0].RX9;
+      //serial
+      document.getElementById("tx_id").value = json.serial[0].TX;
+      document.getElementById("rx_id").value = json.serial[0].RX;
+      document.getElementById("pwr_id").value = json.serial[0].PWR;
+      document.getElementById("sbaud_id").value = json.serial[0].SBAUD;
+      document.getElementById("prt_id").value = json.serial[0].PRT;
+      //client
+      document.getElementById("tx_id_c").value = json.client[0].TXC;
+      document.getElementById("pwr_id_c").value = json.client[0].PWRC;
+      document.getElementById("prt_id_c").value = json.client[0].PRTC;
+      document.getElementById("wifi_id").value = json.client[0].WIFI;
+      document.getElementById("wifipass_id").value = json.client[0].WPAS;
+      document.getElementById("ip_id").value = json.client[0].HOST;
+      document.getElementById("port_id").value = json.client[0].PORT;
+      document.getElementById("mountpt_id").value = json.client[0].MNTP;
+      document.getElementById("user_id").value = json.client[0].USER;
+      document.getElementById("userpass_id").value = json.client[0].UPAS;
+      document.getElementById("latitude").value = json.client[0].latitude;
+      document.getElementById("longitude").value = json.client[0].longitude;
+      document.getElementById("precisao").value = json.client[0].precisao;
+      document.getElementById("altitude").value = json.client[0].altitude;
+      document.getElementById("check_localizacao").value = json.client[0].chLoc;
+      document.getElementById("tempoutc").value = json.client[0].tempoutc;
+      //local
+      document.getElementById("sbaud_id_l").value = json.local[0].SBAUDL;
+      document.getElementById("wifi_id_l").value = json.local[0].WIFIL;
+      document.getElementById("wifipass_id_l").value = json.local[0].WPASL;
+      document.getElementById("ip_id_l").value = json.local[0].HOSTL;
+      document.getElementById("port_id_l").value = json.local[0].PORTL;
+      document.getElementById("mountpt_id_l").value = json.local[0].MNTPL;
+      document.getElementById("user_id_l").value = json.local[0].USERL;
+      document.getElementById("userpass_id_l").value = json.local[0].UPASL;
+      //adv
+      document.getElementById("flow_id").value = json.adv[0].FLOW;
+      document.getElementById("fupp_id").value = json.adv[0].FUPP;
+      document.getElementById("modo_id").value = json.adv[0].MODE;
+      document.getElementById("read_id").value = json.adv[0].READ;
+      document.getElementById("saidaonoff").value = json.adv[0].SOUT;
+      INPT = json.adv[0].INPT;
+      //erro
+      ERRC = json.erro[0].ERRC;
+      EBC = json.erro[0].EBC;
+      ERRW = json.erro[0].ERRW;
+
+      if (EBC!="S") {
+        activateTab(INPT);
+      } else {
+        activateTab("LOCAL");
+      }
+      console.log("o número do erro é " + ERRW);
+      setModalContent(ERRC);
+      setModalContent2(ERRW);
+    };
+    xmlhttp_ch.open("GET", "btx_conf.json");
+    xmlhttp_ch.send();
+
+    function requestLoc() {
+      const xmlhttp_loc = new XMLHttpRequest();
+      xmlhttp_loc.onload = function () {
+        const myObj_loc = JSON.parse(this.responseText);
+        document.getElementById("latitude").value = myObj_loc.latitude;
+        document.getElementById("longitude").value = myObj_loc.longitude;
+        document.getElementById("altitude").value = myObj_loc.altitude;
+        document.getElementById("precisao").value = myObj_loc.precisao;
+      };
+      var currentdate = new Date();
+      var Tempoutc = currentdate.getUTCHours().toString().padStart(2, '0') + "" + currentdate.getMinutes().toString().padStart(2, '0') + "" + currentdate.getUTCSeconds().toString().padStart(2, '0');
+      document.getElementById("tempoutc").value = Tempoutc;
+      xmlhttp_loc.open("GET", "requestL");
+      xmlhttp_loc.send();
+    }
+
+    function enviaTx() // função, que quando clicar no botão, será enviado uma requisição POST para o server
+    {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", '/txChannel', true); // inicializa uma nova requisição, ou reinicializa uma requisição já existente.
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // define o valor do cabeçalho de uma requisição HTTP
+      var ch_0_tx = document.getElementById("ch_0_tx").value;
+      var ch_1_tx = document.getElementById("ch_1_tx").value;
+      var ch_2_tx = document.getElementById("ch_2_tx").value;
+      var ch_3_tx = document.getElementById("ch_3_tx").value;
+      var ch_4_tx = document.getElementById("ch_4_tx").value;
+      var ch_5_tx = document.getElementById("ch_5_tx").value;
+      var ch_6_tx = document.getElementById("ch_6_tx").value;
+      var ch_7_tx = document.getElementById("ch_7_tx").value;
+      var ch_8_tx = document.getElementById("ch_8_tx").value;
+      var ch_9_tx = document.getElementById("ch_9_tx").value;
+
+      xhr.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          // Typical action to be performed when the document is ready:
+          alert("Salvo com sucesso!");
+        } else if (this.readyState == 4 && this.status != 200) {
+          alert("Requisição não foi enviada, pois houve alguma falha");
+        }
+      };
+      xhr.send(
+        "ch_0_tx=" + encodeURIComponent(ch_0_tx) +
+        "&ch_1_tx=" + encodeURIComponent(ch_1_tx) +
+        "&ch_2_tx=" + encodeURIComponent(ch_2_tx) +
+        "&ch_3_tx=" + encodeURIComponent(ch_3_tx) +
+        "&ch_4_tx=" + encodeURIComponent(ch_4_tx) +
+        "&ch_5_tx=" + encodeURIComponent(ch_5_tx) +
+        "&ch_6_tx=" + encodeURIComponent(ch_6_tx) +
+        "&ch_7_tx=" + encodeURIComponent(ch_7_tx) +
+        "&ch_8_tx=" + encodeURIComponent(ch_8_tx) +
+        "&ch_9_tx=" + encodeURIComponent(ch_9_tx)); // envia uma requisição para o servidor.
+    }
+
+    function enviaRx() // função, que quando clicar no botão, será enviado uma requisição POST para o server
+    {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", '/rxChannel', true); // inicializa uma nova requisição, ou reinicializa uma requisição já existente.
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // define o valor do cabeçalho de uma requisição HTTP
+      //enviando channels rx
+      var ch_0_rx = document.getElementById("ch_0_rx").value;
+      var ch_1_rx = document.getElementById("ch_1_rx").value;
+      var ch_2_rx = document.getElementById("ch_2_rx").value;
+      var ch_3_rx = document.getElementById("ch_3_rx").value;
+      var ch_4_rx = document.getElementById("ch_4_rx").value;
+      var ch_5_rx = document.getElementById("ch_5_rx").value;
+      var ch_6_rx = document.getElementById("ch_6_rx").value;
+      var ch_7_rx = document.getElementById("ch_7_rx").value;
+      var ch_8_rx = document.getElementById("ch_8_rx").value;
+      var ch_9_rx = document.getElementById("ch_9_rx").value;
+
+      xhr.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          // Typical action to be performed when the document is ready:
+          alert("Salvo com sucesso!");
+        } else if (this.readyState == 4 && this.status != 200) {
+          alert("Requisição não foi enviada, pois houve alguma falha");
+        }
+      };
+      xhr.send(
+        "ch_0_rx=" + encodeURIComponent(ch_0_rx) +
+        "&ch_1_rx=" + encodeURIComponent(ch_1_rx) +
+        "&ch_2_rx=" + encodeURIComponent(ch_2_rx) +
+        "&ch_3_rx=" + encodeURIComponent(ch_3_rx) +
+        "&ch_4_rx=" + encodeURIComponent(ch_4_rx) +
+        "&ch_5_rx=" + encodeURIComponent(ch_5_rx) +
+        "&ch_6_rx=" + encodeURIComponent(ch_6_rx) +
+        "&ch_7_rx=" + encodeURIComponent(ch_7_rx) +
+        "&ch_8_rx=" + encodeURIComponent(ch_8_rx) +
+        "&ch_9_rx=" + encodeURIComponent(ch_9_rx));
+    }
+
+    function enviaSerial() // função, que quando clicar no botão, será enviado uma requisição POST para o server
+    {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", '/serial', true); // inicializa uma nova requisição, ou reinicializa uma requisição já existente.
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // define o valor do cabeçalho de uma requisição HTTP
+      //enviando serial
+      var TX = document.getElementById("tx_id").value;
+      var RX = document.getElementById("rx_id").value;
+      var PSerial = document.getElementById("sbaud_id").value;
+      var Pwr = document.getElementById("pwr_id").value;
+      var Prt = document.getElementById("prt_id").value;
+
+      xhr.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          // Typical action to be performed when the document is ready:
+          alert("Salvo com sucesso!");
+        } else if (this.readyState == 4 && this.status != 200) {
+          alert("Requisição não foi enviada, pois houve alguma falha");
+        }
+      };
+      xhr.send(
+        "tx=" + encodeURIComponent(TX) +
+        "&rx=" + encodeURIComponent(RX) +
+        "&sbaud=" + encodeURIComponent(PSerial) +
+        "&pwr=" + encodeURIComponent(Pwr) +
+        "&prt=" + encodeURIComponent(Prt)); // envia uma requisição para o servidor.
+    }
+
+    function enviaClient() // função, que quando clicar no botão, será enviado uma requisição POST para o server
+    {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", '/client', true); // inicializa uma nova requisição, ou reinicializa uma requisição já existente.
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // define o valor do cabeçalho de uma requisição HTTP
+      //enviando cliente
+      var TXC = document.getElementById("tx_id_c").value;
+      var PwrC = document.getElementById("pwr_id_c").value;
+      var PrtC = document.getElementById("prt_id_c").value;
+      var Wifi = document.getElementById("wifi_id").value;
+      var Wifipass = document.getElementById("wifipass_id").value;
+      var Ip = document.getElementById("ip_id").value;
+      var Port = document.getElementById("port_id").value;
+      var Mountpt = document.getElementById("mountpt_id").value;
+      var User = document.getElementById("user_id").value;
+      var Userpass = document.getElementById("userpass_id").value;
+      var Latitude = document.getElementById("latitude").value;
+      var Longitude = document.getElementById("longitude").value;
+      var Altitude = document.getElementById("altitude").value;
+      var Precisao = document.getElementById("precisao").value;
+      var ChLoc = document.getElementById("check_localizacao").value;
+      var tempoutc = document.getElementById("tempoutc").value;
+
+      xhr.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          // Typical action to be performed when the document is ready:
+          alert("Salvo com sucesso!");
+        } else if (this.readyState == 4 && this.status != 200) {
+          alert("Requisição não foi enviada, pois houve alguma falha");
+        }
+      };
+      xhr.send(
+        "txc=" + encodeURIComponent(TXC) +
+    "&pwrc=" + encodeURIComponent(PwrC) +
+    "&prtc=" + encodeURIComponent(PrtC) +
+    "&wifi=" + encodeURIComponent(Wifi) +
+    "&wifipass=" + encodeURIComponent(Wifipass) +
+    "&IP=" + encodeURIComponent(Ip) +
+    "&port=" + encodeURIComponent(Port) +
+    "&mountpt=" + encodeURIComponent(Mountpt) +
+    "&user=" + encodeURIComponent(User) +
+    "&userpass=" + encodeURIComponent(Userpass) +
+    "&Latitude=" + encodeURIComponent(Latitude) +
+    "&Longitude=" + encodeURIComponent(Longitude) +
+    "&Precisao=" + encodeURIComponent(Precisao) +
+    "&Altitude=" + encodeURIComponent(Altitude) +
+    "&tempoutc=" + encodeURIComponent(tempoutc) +
+    "&ChLoc=" + encodeURIComponent(ChLoc)); // envia uma requisição para o servidor.
+    }
+
+    function enviaLocal() // função, que quando clicar no botão, será enviado uma requisição POST para o server
+    {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", '/local', true); // inicializa uma nova requisição, ou reinicializa uma requisição já existente.
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // define o valor do cabeçalho de uma requisição HTTP
+      //enviando caster
+      var SbaudL = document.getElementById("sbaud_id_l").value;
+      var WifiL = document.getElementById("wifi_id_l").value;
+      var WifipassL = document.getElementById("wifipass_id_l").value;
+      var IpL = document.getElementById("ip_id_l").value;
+      var PortL = document.getElementById("port_id_l").value;
+      var MountptL = document.getElementById("mountpt_id_l").value;
+      var UserL = document.getElementById("user_id_l").value;
+      var UserpassL = document.getElementById("userpass_id_l").value;
+
+      xhr.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          // Typical action to be performed when the document is ready:
+          alert("Salvo com sucesso!");
+        } else if (this.readyState == 4 && this.status != 200) {
+          alert("Requisição não foi enviada, pois houve alguma falha");
+        }
+      };
+      xhr.send(
+        "sbaudl=" + encodeURIComponent(SbaudL) +
+        "&wifil=" + encodeURIComponent(WifiL) +
+        "&wifipassl=" + encodeURIComponent(WifipassL) +
+        "&IPl=" + encodeURIComponent(IpL) +
+        "&portl=" + encodeURIComponent(PortL) +
+        "&mountptl=" + encodeURIComponent(MountptL) +
+        "&userl=" + encodeURIComponent(UserL) +
+        "&userpassl=" + encodeURIComponent(UserpassL));
+        // envia uma requisição para o servidor.
+    }
+
+    function enviaAdv() // função, que quando clicar no botão, será enviado uma requisição POST para o server
+    {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", '/adv', true); // inicializa uma nova requisição, ou reinicializa uma requisição já existente.
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // define o valor do cabeçalho de uma requisição HTTP
+      var modo = document.getElementById("modo_id").value;
+      var flow = document.getElementById("flow_id").value;
+      var fupp = document.getElementById("fupp_id").value;
+      var read = document.getElementById("read_id").value;
+      var saidaonoff = document.getElementById("saidaonoff").value;
+
+      xhr.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          // Typical action to be performed when the document is ready:
+          alert("Salvo com sucesso!");
+        } else if (this.readyState == 4 && this.status != 200) {
+          alert("Requisição não foi enviada, pois houve alguma falha");
+        }
+      };
+      xhr.send(
+        "modo=" + encodeURIComponent(modo) +
+        "&flow=" + encodeURIComponent(flow) +
+        "&fupp=" + encodeURIComponent(fupp) +
+        "&read=" + encodeURIComponent(read) +
+        "&saidaonoff=" + encodeURIComponent(saidaonoff)); // envia uma requisição para o servidor.
+    }
+
+    function closeconf() // função, que quando clicar no botão, será enviado uma requisição POST para o server
+    {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", '/closeconf', true); // inicializa uma nova requisição, ou reinicializa uma requisição já existente.
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // define o valor do cabeçalho de uma requisição HTTP
+
+      xhr.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          // Typical action to be performed when the document is ready:
+          alert("Salvo com sucesso!");
+        } else if (this.readyState == 4 && this.status != 200) {
+          alert("Requisição não foi enviada, pois houve alguma falha");
+        }
+      };
+      xhr.send();
+    }
+
+    function closeERR() // função, que quando clicar no botão, será enviado uma requisição POST para o server
+    {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", '/ERR', true); // inicializa uma nova requisição, ou reinicializa uma requisição já existente.
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // define o valor do cabeçalho de uma requisição HTTP
+
+      xhr.onreadystatechange = function () {
+      };
+      xhr.send();
+    }
+
+    function closeModal() {
+      location.reload();
+    }
+
+    function setModalContent(ERRC) {
+      var title = '';
+      var bodyText = '';
+
+      switch (ERRC) {
+        case "0":
+          return;
+        case "1":
+          title = 'ERRO';
+          bodyText = 'HOST/PORT Incorreto, verifique as credenciais e tente novamente';
+          break;
+        case "2":
+          title = 'ERRO';
+          bodyText = 'Resposta não compreendida';
+          break;
+        case "3":
+          title = 'ERRO';
+          bodyText = 'Autentificação incorreta, verifique as credenciais e teente novamente';
+          break;
+        case "5":
+          title = 'ERRO';
+          bodyText = 'Requisição demorou mais que o esperado';
+          break;
+        case "6":
+          title = 'ERRO';
+          bodyText = 'Mount Point incorreto, verifique as credenciais e tente novamente';
+          break;
+      }
+
+      document.getElementById('modalErrcTitle').textContent = title;
+      document.getElementById('modalErrcBody').innerHTML = `<p>${bodyText}</p>`;
+
+      var myModal = new bootstrap.Modal(document.getElementById('modalErrc'));
+      myModal.show();
+    }
+
+    function setModalContent2(ERRW) {
+      var title = '';
+      var bodyText = '';
+
+      switch (ERRW) {
+        case "0":
+          return;
+        case "1":
+          title = 'ERRO';
+          bodyText = 'Rede não encontrada, verifique as credenciais da rede WiFi e tente novamente';
+          break;
+        case "2":
+          title = 'ERRO';
+          bodyText = 'Senha da rede incorreta, verifique a senha WiFi e tente novamente';
+          break;
+      }
+
+      document.getElementById('modalErrwTitle').textContent = title;
+      document.getElementById('modalErrwBody').innerHTML = `<p>${bodyText}</p>`;
+
+      var myModal = new bootstrap.Modal(document.getElementById('modalErrw'));
+      myModal.show();
+    }
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+      var UsbIssue = document.getElementById("PWRWarning");
+      async function checkEndpoint() {
+        try {
+          const response = await fetch('/USBPowerIssue', {
+            method: 'GET',
+            // Optionally add headers or credentials if needed
+          });
+
+          // Check if the response status is OK (status code 200-299)
+          if (response.ok) {
+            // Endpoint is available, execute specific commands here
+            console.log('Endpoint /USBPowerIssue is available.');
+            handleAvailableEndpoint();
+          } else {
+            // Endpoint is not available, run normal operations or handle error
+            console.log('Endpoint /USBPowerIssue is not available.');
+            handleUnavailableEndpoint();
+          }
+        } catch (error) {
+          // Handle any network errors
+          console.error('Error checking endpoint:', error);
+          handleUnavailableEndpoint();
+        }
+      }
+
+      // Function to handle the case where the endpoint is available
+      function handleAvailableEndpoint() {
+        setTabActive('local-tab');
+        activateTab("LOCAL");
+        UsbIssue.style.display = "block";
+      }
+
+      // Function to handle the case where the endpoint is not available
+      function handleUnavailableEndpoint() {
+        activateTab(INPT);
+        UsbIssue.style.display = "none";
+      }
+
+      function setTabActive(tabId) {
+        document.querySelectorAll('.nav-link').forEach(tab => {
+          tab.classList.remove('active');
+        });
+        document.querySelector(`#${tabId}`).classList.add('active');
+      }
+
+      function setTabDisabled(tabId, contentId) {
+        document.querySelector(`#${tabId}`).classList.add('disabled');
+        document.querySelector(`#${contentId}`).style.display = 'none';
+      }
+
+      function setTabEnabled(tabId, contentId) {
+        document.querySelector(`#${tabId}`).classList.remove('disabled');
+        document.querySelector(`#${contentId}`).style.display = 'block';
+      }
+
+      checkEndpoint();
+    });
+
+    $(function () {
+      // Function to get stored data for a specific input
+      function getStoredData(inputId) {
+        return JSON.parse(localStorage.getItem(inputId)) || [];
+      }
+
+      // Function to save data to local storage for a specific input
+      function saveData(inputId, data) {
+        localStorage.setItem(inputId, JSON.stringify(data));
+      }
+
+      // Initialize autocomplete for all input fields with the class 'autocomplete'
+      $('.autocomplete').each(function () {
+        var inputField = $(this);
+        var inputId = inputField.attr('id');
+
+        inputField.autocomplete({
+          source: function (request, response) {
+            var storedData = getStoredData(inputId);
+            var filteredData = $.grep(storedData, function (item) {
+              return item.toLowerCase().indexOf(request.term.toLowerCase()) === 0;
+            });
+            response(filteredData);
+          },
+          select: function (event, ui) {
+            // Optionally handle selection
+          }
+        });
+
+        // Prepopulate the input field with stored suggestions
+        var initialData = getStoredData(inputId);
+        if (initialData.length) {
+          inputField.autocomplete('option', 'source', initialData);
+        }
+      });
+
+      // Optionally save data when the form is submitted
+      $('form').on('submit', function (event) {
+        event.preventDefault(); // Prevent the default form submission
+
+        // Iterate over each autocomplete input field and save its current value
+        $('.autocomplete').each(function () {
+          var inputField = $(this);
+          var inputId = inputField.attr('id');
+          var currentInput = inputField.val();
+          var storedData = getStoredData(inputId);
+
+          if (currentInput && $.inArray(currentInput, storedData) === -1) {
+            storedData.push(currentInput);
+            saveData(inputId, storedData);
+          }
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>
